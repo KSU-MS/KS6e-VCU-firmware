@@ -17,8 +17,33 @@ void Dashboard::updateDashCAN()
             button_states = rxMsg.buf[0];
         }
     }
+
+
 }
 
+bool Dashboard::updatePRECHG_RELIABLE()
+{
+    CAN_message_t rxMsg;
+
+    if (ReadAccumulatorCAN(rxMsg)){
+        if(rxMsg.id == ID_PRECHG_INFO){
+            bool RELIABLE_state_PRECHG = rxMsg.buf[7]; 
+            return RELIABLE_state_PRECHG;            
+        }
+    }
+}
+
+bool Dashboard::updateACU_RELIABLE()
+{
+    CAN_message_t rxMsg;
+
+    if (ReadAccumulatorCAN(rxMsg)){
+        if(rxMsg.id == ID_ACU_RELAY){
+            bool RELIABLE_state_ACU = rxMsg.buf[7]; 
+            return RELIABLE_state_ACU;            
+        }
+    }
+}
 
 void Dashboard::ByteEachDigit(int num)
 {
@@ -34,3 +59,4 @@ uint8_t *Dashboard::getBusVoltage()
 {
     return this->BusVolt_ByteEachDigit;
 }
+

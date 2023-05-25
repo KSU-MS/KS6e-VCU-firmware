@@ -1,5 +1,7 @@
 #include "state_machine.hpp"
 #define ACCDEBUG
+Metro dashled_check_ = Metro(100);
+
 //  initializes the mcu status and pedal handler
 void StateMachine::init_state_machine(MCU_status &mcu_status)
 {
@@ -112,10 +114,17 @@ void StateMachine::set_state(MCU_status &mcu_status, MCU_STATE new_state)
 void StateMachine::handle_state_machine(MCU_status &mcu_status)
 {
   // things that are done every loop go here:
-  // TODO make getting analog readings neater--this is the only necessary one for now
-  mcu_status.set_imd_ok_high(accumulator->get_imd_state());
-  mcu_status.set_bms_ok_high(accumulator->get_bms_state());
-  mcu_status.set_bspd_ok_high(true); // not reading this value so it defaults to off for now
+  
+  if(dashled_check_.check()){
+    mcu_status.set_imd_ok_high(accumulator->get_imd_state());
+    mcu_status.set_bms_ok_high(accumulator->get_bms_state());
+    if(RELIABLE && dash_->updatePRECHG_RELIABLE() && dash_->updateACU_RELIABLE()){
+      mcu_status.set_bspd_ok_high(true); 
+    } else {
+      mcu_status.set_bms_ok_high(false);
+    }
+  }
+  
 
 #ifdef DEBUG
   // Serial.print("1: ");

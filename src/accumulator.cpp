@@ -59,7 +59,7 @@ void Accumulator::updateAccumulatorCAN()
     {
         switch (rxMsg.id)
         {
-        case (0x69):
+        case (ID_PRECHG_INFO):
         {
             pchgTimeout->reset();
             pchgState = rxMsg.buf[0];

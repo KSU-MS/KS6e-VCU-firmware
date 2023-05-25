@@ -38,6 +38,7 @@ Metro pm100speedInspection = Metro(500, 1);
 // timers for the state machine:
 Metro timer_ready_sound = Metro(1000); // Time to play RTD sound
 Metro debug_tim = Metro(200, 1);
+Metro dashled_check_ = Metro(500);
 int temporarydisplaytime = 0;
 
 // PID shit

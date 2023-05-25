@@ -34,6 +34,9 @@ public:
     void ByteEachDigit(int num);
 
     uint8_t *getBusVoltage();
+
+    bool updatePRECHG_RELIABLE();
+    bool updateACU_RELIABLE();
  
 private:
     uint8_t button_states;

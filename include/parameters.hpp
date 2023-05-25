@@ -3,7 +3,7 @@
 
 #define HT_DEBUG_EN
 #define DEBUG
-
+#define RELIABLE 1 // Define this TRUE if the code has been successfully tested & pushed to MAIN branch
 
 #define USE_INVERTER true
 // TODO may wanna do this another way
