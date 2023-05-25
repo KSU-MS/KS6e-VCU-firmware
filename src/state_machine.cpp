@@ -1,6 +1,6 @@
 #include "state_machine.hpp"
 #define ACCDEBUG
-Metro dashled_check_ = Metro(100);
+Metro dashled_check_2 = Metro(100);
 
 //  initializes the mcu status and pedal handler
 void StateMachine::init_state_machine(MCU_status &mcu_status)
@@ -115,7 +115,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 {
   // things that are done every loop go here:
   
-  if(dashled_check_.check()){
+  if(dashled_check_2.check()){
     mcu_status.set_imd_ok_high(accumulator->get_imd_state());
     mcu_status.set_bms_ok_high(accumulator->get_bms_state());
     if(RELIABLE && dash_->updatePRECHG_RELIABLE() && dash_->updateACU_RELIABLE()){
