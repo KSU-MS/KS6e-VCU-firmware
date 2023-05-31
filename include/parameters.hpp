@@ -6,6 +6,8 @@
 #define RELIABLE 1 // Define this TRUE if the code has been successfully tested & pushed to MAIN branch
 
 #define USE_INVERTER true
+// #define USE_REGEN false
+#define USE_LAUNCH
 // TODO may wanna do this another way
 
 // Pedalbox stuff
@@ -41,6 +43,8 @@
 #define HALF_ACCELERATOR_PEDAL_2 ((START_ACCELERATOR_PEDAL_2 + END_ACCELERATOR_PEDAL_2) / 2)
 #define ALPHA 0.9772
 #define regen_nm 120
+#define launch_seconds 1200 // Duration of torque ramp up until full power again, mills
+#define launch_activation 80 // Activation percentage, pedal must be pressed by at least this much to enable launch control
 
 #define MIN_HV_VOLTAGE 600 // apparently this is divided by ten? yes maybe, bc getmcbusvoltage returns a can packet which is the bus voltage*10? idk
 

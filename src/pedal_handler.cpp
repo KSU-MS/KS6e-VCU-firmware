@@ -2,6 +2,12 @@
 #include "state_machine.hpp"
 Metro debugPrint = Metro(10);
 Metro deb = Metro(10);
+float cal5 = -0.000000000000085;
+float cal4 = 0.000000000114956;
+float cal3 = 0.000000015913376; // Third, etc
+float cal2 = 0.000011808754927; // Second
+float cal1 = 0.093415288604319; // First order of poly
+float calIntercept = 10.361085973494500;
 
 // initializes pedal's ADC
 void PedalHandler::init_pedal_handler()
@@ -13,7 +19,7 @@ void PedalHandler::init_pedal_handler()
     pid_->setBangBang(double(BANGBANG_RANGE));
 }
 
-int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool regen_button)
+int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool regen_button, bool launch_button)
 {
     int calculated_torque = 0;
     
@@ -43,10 +49,15 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
         calculated_torque = 0;
     }
 
-    // TODO actual regen mapping and not on/off, this was jerky on dyno
+    
     bool off_brake = (VCUPedalReadings.get_brake_transducer_1() <= 1850);
     bool off_gas =  (torque1 <= 5);
+    bool launch_gas = (torque1 >= max_torque*launch_activation);
+    bool launch_go = false;
+    uint16_t launch_torque = 0;
+    elapsedMillis launch_timer;
 
+    #ifdef USE_REGEN
     Serial.print("button: ");
     Serial.println(regen_button);
     Serial.print("brake: ");
@@ -66,6 +77,38 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
         // torquePart1=0x9C;
         // torquePart2=0xFf; //-10nm sussy regen
     }
+    #endif
+    
+    #ifdef USE_LAUNCH
+    Serial.print("button: ");
+    Serial.println(launch_button);
+    Serial.print("off brake: ");
+    Serial.println(off_brake);
+    Serial.print("off gas: ");
+    Serial.println(off_gas);
+
+    if(launch_gas && off_brake && launch_button)
+    {
+        launch_go = true;
+        launch_timer = 0;
+        Serial.print("BOOGITY BOOGITY BOOGITY BOYS");
+    }
+    if(launch_gas && off_brake && launch_go)
+    {
+        if(launch_timer >= launch_seconds){
+            launch_go = false;
+            Serial.print("Launch over");
+        }
+
+        launch_torque = (cal5*pow(launch_timer,5))+(cal4*pow(launch_timer,4))+(cal3*pow(launch_timer,3))+(cal2*pow(launch_timer,2))+(cal1*(launch_timer))+calIntercept; // Performs the calibration curve math
+        
+        if(launch_torque > torque1){
+            launch_torque = torque1;
+        }
+
+        calculated_torque = launch_torque;
+    }
+    #endif
 
     return calculated_torque;
 }

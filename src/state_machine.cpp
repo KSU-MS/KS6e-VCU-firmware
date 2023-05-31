@@ -340,7 +340,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 #if USE_INVERTER
       motor_speed = pm100->getmcMotorRPM();
 #endif
-      calculated_torque = pedals->calculate_torque(motor_speed, max_t_actual, dash_->get_button2());
+      calculated_torque = pedals->calculate_torque(motor_speed, max_t_actual, dash_->get_button2(), dash_->get_button3());
     }
     
 #if USE_INVERTER
