@@ -42,7 +42,7 @@
 #define HALF_ACCELERATOR_PEDAL_1 ((START_ACCELERATOR_PEDAL_1 + END_ACCELERATOR_PEDAL_1) / 2)
 #define HALF_ACCELERATOR_PEDAL_2 ((START_ACCELERATOR_PEDAL_2 + END_ACCELERATOR_PEDAL_2) / 2)
 #define ALPHA 0.9772
-#define regen_nm 120
+#define regen_nm 120 // How much regen should do
 #define launch_seconds 1200 // Duration of torque ramp up until full power again, mills
 #define launch_activation 80 // Activation percentage, pedal must be pressed by at least this much to enable launch control
 
@@ -55,7 +55,6 @@
 #define TORQUE_2 120
 #define TORQUE_3 180
 #define TORQUE_4 240
-#define TORQUE_5 320
 
 // Pump speed
 #define PUMP_SPEED 3400
