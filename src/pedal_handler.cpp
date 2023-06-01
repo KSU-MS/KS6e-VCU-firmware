@@ -53,6 +53,7 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
     bool off_brake = (VCUPedalReadings.get_brake_transducer_1() <= 1850);
     bool off_gas =  (torque1 <= 5);
     bool launch_gas = (torque1 >= max_torque*launch_activation);
+    bool launch_enable = false;
     bool launch_go = false;
     uint16_t launch_torque = 0;
     elapsedMillis launch_timer;
@@ -87,26 +88,43 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
     Serial.print("off gas: ");
     Serial.println(off_gas);
 
-    if(launch_gas && off_brake && launch_button)
+    if(off_brake && launch_button) // Off brake & gas & hold down button, then press gas while still holding button, then release button while still holding gas to launch
     {
-        launch_go = true;
-        launch_timer = 0;
-        Serial.print("BOOGITY BOOGITY BOOGITY BOYS");
+        calculated_torque = 0; // Disables torque requests while button is pressed so you can stomp on the gas
+        if(launch_gas && launch_button){
+            launch_enable = true;
+            Serial.println("Launch enabled");
+        }
     }
-    if(launch_gas && off_brake && launch_go)
+
+    if(launch_gas && off_brake && launch_enable)
     {
-        if(launch_timer >= launch_seconds){
-            launch_go = false;
-            Serial.print("Launch over");
+        // Releasing the button triggers the launch start
+        if(!launch_button){
+            launch_go = true;
+            launch_timer = 0;
+            Serial.print("BOOGITY BOOGITY BOOGITY BOYS");
         }
-
-        launch_torque = (cal5*pow(launch_timer,5))+(cal4*pow(launch_timer,4))+(cal3*pow(launch_timer,3))+(cal2*pow(launch_timer,2))+(cal1*(launch_timer))+calIntercept; // Performs the calibration curve math
         
-        if(launch_torque > torque1){
-            launch_torque = torque1;
-        }
+        if(launch_go){
+            if(launch_timer >= launch_seconds){
+                launch_enable = false;
+                launch_go = false;
+                Serial.print("Launch over");
+            }
 
-        calculated_torque = launch_torque;
+            launch_torque = (cal5*pow(launch_timer,5))+(cal4*pow(launch_timer,4))+(cal3*pow(launch_timer,3))+(cal2*pow(launch_timer,2))+(cal1*(launch_timer))+calIntercept; // Performs the calibration curve math
+            
+            if(launch_torque > torque1){
+                launch_torque = torque1;
+            }
+
+            calculated_torque = launch_torque;
+        } 
+        else {
+            Serial.println("Waiting for button release...");
+            calculated_torque =  0;
+        }
     }
     #endif
 
