@@ -91,6 +91,7 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
     if(off_brake && launch_button) // Off brake & gas & hold down button, then press gas while still holding button, then release button while still holding gas to launch
     {
         calculated_torque = 0; // Disables torque requests while button is pressed so you can stomp on the gas
+
         if(launch_gas && launch_button){
             launch_enable = true;
             Serial.println("Launch enabled");
@@ -99,6 +100,7 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
 
     if(launch_gas && off_brake && launch_enable)
     {
+        // Maybe add an indicator LED that turns on when launch_enable is true
         // Releasing the button triggers the launch start
         if(!launch_button){
             launch_go = true;
