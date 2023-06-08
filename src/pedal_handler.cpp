@@ -88,7 +88,7 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
     Serial.print("off gas: ");
     Serial.println(off_gas);
 
-    if(off_brake && launch_button) // Off brake & gas & hold down button, then press gas while still holding button, then release button while still holding gas to launch
+    if(!off_brake && launch_button) // Off brake & gas & hold down button, then press gas while still holding button, then release button while still holding gas to launch
     {
         calculated_torque = 0; // Disables torque requests while button is pressed so you can stomp on the gas
 
@@ -115,7 +115,7 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
                 Serial.print("Launch over");
             }
 
-            launch_torque = (cal5*pow(launch_timer,5))+(cal4*pow(launch_timer,4))+(cal3*pow(launch_timer,3))+(cal2*pow(launch_timer,2))+(cal1*(launch_timer))+calIntercept; // Performs the calibration curve math
+            // launch_torque = (cal5*pow(launch_timer,5))+(cal4*pow(launch_timer,4))+(cal3*pow(launch_timer,3))+(cal2*pow(launch_timer,2))+(cal1*(launch_timer))+calIntercept; // Performs the calibration curve math
             
             if(launch_torque > torque1){
                 launch_torque = torque1;
@@ -129,7 +129,8 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
         }
     }
     #endif
-
+    Serial.print("THIS IS CAL TQ");
+    Serial.println(calculated_torque);
     return calculated_torque;
 }
 

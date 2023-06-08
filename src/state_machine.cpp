@@ -121,19 +121,19 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     if(RELIABLE && dash_->updatePRECHG_RELIABLE() && dash_->updateACU_RELIABLE()){
       mcu_status.set_bspd_ok_high(true); 
     } else {
-      mcu_status.set_bms_ok_high(false);
+      mcu_status.set_bms_ok_high(true);
     }
   }
   
 
 #ifdef DEBUG
-  // Serial.print("1: ");
+  // Serial.print(" 1: ");
   // Serial.print(dash_->get_button1());
-  // Serial.print("2: ");
+  // Serial.print(" 2: ");
   // Serial.print(dash_->get_button2());
-  // Serial.print("3: ");
+  // Serial.print(" 3: ");
   // Serial.print(dash_->get_button3());
-  // Serial.print("4: ");
+  // Serial.print(" 4: ");
   // Serial.println(dash_->get_button4());
 #endif
 
@@ -340,7 +340,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 #if USE_INVERTER
       motor_speed = pm100->getmcMotorRPM();
 #endif
-      calculated_torque = pedals->calculate_torque(motor_speed, max_t_actual, dash_->get_button2(), dash_->get_button3());
+      calculated_torque = pedals->calculate_torque(motor_speed, max_t_actual, dash_->get_button2(), dash_->get_button2());
     }
     
 #if USE_INVERTER
