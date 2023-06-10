@@ -22,6 +22,14 @@ void PedalHandler::init_pedal_handler()
 int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool regen_button, bool launch_button)
 {
     int calculated_torque = 0;
+
+    bool off_brake = (VCUPedalReadings.get_brake_transducer_1() <= BRAKE_ACTIVE);
+    bool off_gas =  (torque1 <= 5);
+    bool launch_gas = (torque1 >= max_torque*launch_activation);
+    bool launch_enable = false;
+    bool launch_go = false;
+    uint16_t launch_torque = 0;
+    elapsedMillis launch_timer;
     
     int torque1 = map(round(accel1_), START_ACCELERATOR_PEDAL_1,
                       END_ACCELERATOR_PEDAL_1, 0, max_torque);
@@ -38,7 +46,9 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
     }
     // compare torques to check for accelerator implausibility
     
-    calculated_torque = (torque1 + torque2) / 2; //TODO un-cheese this
+    if(!launch_button || !launch_enable){
+        calculated_torque = (torque1 + torque2) / 2; //TODO un-cheese this
+    }
 
     if (calculated_torque > max_torque)
     {
@@ -50,13 +60,6 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
     }
 
     
-    bool off_brake = (VCUPedalReadings.get_brake_transducer_1() <= 1850);
-    bool off_gas =  (torque1 <= 5);
-    bool launch_gas = (torque1 >= max_torque*launch_activation);
-    bool launch_enable = false;
-    bool launch_go = false;
-    uint16_t launch_torque = 0;
-    elapsedMillis launch_timer;
 
     #ifdef USE_REGEN
     Serial.print("button: ");
