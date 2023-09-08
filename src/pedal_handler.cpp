@@ -23,11 +23,6 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
 {
     int calculated_torque = 0;
 
-    bool off_brake = (VCUPedalReadings.get_brake_transducer_1() <= BRAKE_ACTIVE);
-    bool off_gas =  (torque1 <= 5);
-    bool launch_gas = (torque1 >= max_torque*launch_activation);
-    bool launch_enable = false;
-    bool launch_go = false;
     uint16_t launch_torque = 0;
     elapsedMillis launch_timer;
     
@@ -46,8 +41,16 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
     }
     // compare torques to check for accelerator implausibility
     
+    bool off_brake = (VCUPedalReadings.get_brake_transducer_1() <= BRAKE_ACTIVE);
+    bool off_gas =  (torque1 <= 5);
+    bool launch_gas = (torque1 >= max_torque*launch_activation);
+    bool launch_enable = false;
+    bool launch_go = false;
+
     if(!launch_button || !launch_enable){
         calculated_torque = (torque1 + torque2) / 2; //TODO un-cheese this
+    } else {
+        calculated_torque = 0;
     }
 
     if (calculated_torque > max_torque)
@@ -119,12 +122,18 @@ int PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque, bool r
             }
 
             // launch_torque = (cal5*pow(launch_timer,5))+(cal4*pow(launch_timer,4))+(cal3*pow(launch_timer,3))+(cal2*pow(launch_timer,2))+(cal1*(launch_timer))+calIntercept; // Performs the calibration curve math
-            
+            launch_torque = (1/250)*(launch_timer)+calIntercept; // Performs the calibration curve math, shrimple linear for now
+            // launch_torque = 0;
+
             if(launch_torque > torque1){
                 launch_torque = torque1;
             }
 
-            calculated_torque = launch_torque;
+            // calculated_torque = launch_torque;
+            calculated_torque = 0;
+
+            Serial.print("THIS IS LAUNCH TQ");
+            Serial.println(launch_torque);
         } 
         else {
             Serial.println("Waiting for button release...");
