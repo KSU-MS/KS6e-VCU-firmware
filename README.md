@@ -92,3 +92,38 @@ flowchart TD
     P --> Q(RETURN CALCULATED TORQUE)
 
 ```  
+
+## launch control state diagram
+
+```mermaid
+
+stateDiagram-v2
+
+    rtd : READY_TO_DRIVE
+    [*]-->rtd
+    rtd --> checkButtons
+    checkButtons-->toggle_lc:toggle lc if specific buttons are held
+    state toggle_lc{
+        toggle_get_lc_active-->set_lc_active(1):set to 1 if it was 0
+        toggle_get_lc_active-->set_lc_active(0):set to 0 if it was 1
+        set_lc_active(1)-->[*]
+        set_lc_active(0)-->[*]
+    }
+    toggle_lc -->get_lc_active
+    checkButtons-->get_lc_active:if buttons are not held go to check lc state
+    get_lc_active-->launchState:mcu_status.get_launch_ctrl_active returns 1
+    get_lc_active-->command_torque:mcu_status.get_launch_ctrl_active returns 0
+    state launchState{
+        idle-->waiting:gas pressed, button pressed, and no implaus
+        idle-->[*]
+        waiting-->idle: gas released or implaus
+        waiting-->[*]
+        waiting-->launching: gas still pressed and button released 
+        launching-->finished: brake pressed (cancel early)
+        launching-->finished: time completed
+        launching-->[*]:launching in progress
+        finished-->[*]:launch control done, set launch_ctrl_active to 0
+    }
+    launchState-->command_torque:deactivate LC when finished
+    command_torque-->rtd:return to start of RTD loop
+```
