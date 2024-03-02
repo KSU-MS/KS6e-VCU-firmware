@@ -39,6 +39,17 @@ void Dashboard::update_dash(uint8_t input)
     }
     this->set_buttons(input);
 }
+// true if time since button pressed > duration_ms
+bool Dashboard::get_button_held_duration(uint8_t button, unsigned long duration_ms)
+{
+    return this->get_button(button) && (this->get_button_last_pressed_time(button) >= duration_ms);
+}
+// true if time since a button was released > duration_ms (if you want to delay an action for example)
+bool Dashboard::get_button_released_duration(uint8_t button, unsigned long duration_ms)
+{
+    return !(this->get_button(button)) && (this->get_button_last_pressed_time(button) >= duration_ms);
+}
+
 void Dashboard::updateDashCAN()
 {
     CAN_message_t rxMsg;

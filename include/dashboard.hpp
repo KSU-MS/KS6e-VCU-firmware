@@ -35,6 +35,17 @@ public:
      * @return false 
      */
     bool get_button(uint8_t button) {return (button_states & (0x1 << (button - 1)));}
+    /**
+     * @brief Get the button held duration object
+     * 
+     * @param button 
+     * @param duration_ms 
+     * @return true 
+     * @return false 
+     */
+    bool get_button_held_duration(uint8_t button, unsigned long duration_ms);
+    bool get_button_released_duration(uint8_t button, unsigned long duration_ms);
+
     void updateDashCAN();
     /**
      * @brief Get the button last pressed time object
@@ -49,7 +60,7 @@ public:
     float last_received_timestamp = 0;
 private:
     uint8_t button_states;
-    elapsedMillis button_last_pressed_time[6] = {0,0,0,0,0,0};
+    elapsedMillis button_last_pressed_time[6] = {0,0,0,0,0,0}; // Maybe this should be a map :skullemoji:
     void reset_all_button_timers();
 };
 

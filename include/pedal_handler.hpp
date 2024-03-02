@@ -88,6 +88,7 @@ public:
     void send_readings();
     bool get_board_sensor_readings();
     void read_pedal_values_debug(uint16_t value);
+    float getAppsTravel();
 };
 
 typedef struct pedal_thresholds_0_t

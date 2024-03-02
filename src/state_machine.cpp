@@ -65,7 +65,7 @@ void StateMachine::set_state(MCU_status &mcu_status, MCU_STATE new_state)
     // disable lowside outputs (pump, etc.)
     digitalWrite(LOWSIDE1, LOW);
     digitalWrite(LOWSIDE2, LOW);
-
+    mcu_status.set_launch_ctrl_active(0); // disable launch control if it was active
     break;
   }
   }
@@ -140,10 +140,10 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 
   pedals->send_readings();
 
-  // If dash button is on and has been on for 
+  // If dash button is on and has been on for
   if (dash_->get_button(6) && (dash_->get_button_last_pressed_time(6)) > 750)
   {
-    dash_->set_button_last_pressed_time(0,6);
+    dash_->set_button_last_pressed_time(0, 6);
     mcu_status.toggle_max_torque(mcu_status.get_torque_mode());
     mcu_status.set_max_torque(torque_mode_list[mcu_status.get_torque_mode() - 1]);
     send_state_msg(mcu_status);
@@ -242,14 +242,14 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 #if USE_INVERTER
     if (!pm100->check_TS_active())
     {
-      set_state(mcu_status, MCU_STATE::TRACTIVE_SYSTEM_NOT_ACTIVE); // uncomet stage 1
+      set_state(mcu_status, MCU_STATE::TRACTIVE_SYSTEM_NOT_ACTIVE);
     }
 #else
     if (false)
     {
     } // dummy
 #endif
-    else if (accumulator->check_precharge_timeout()) // uncomet stage 1
+    else if (accumulator->check_precharge_timeout())
     {
 
       set_state(mcu_status, MCU_STATE::TRACTIVE_SYSTEM_NOT_ACTIVE);
@@ -360,10 +360,69 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     }
 
     // Torque calc always runs in the superloop
-
+    // Toggle launch control if button 2 & 6 are held for 1 second, while brake is pressed
+    if (dash_->get_button_held_duration(2, 1000) && dash_->get_button_held_duration(6, 1000) && mcu_status.get_brake_pedal_active())
+    {
+      // Toggle launch control (allows deactivating if sitting in it)
+      mcu_status.set_launch_ctrl_active(!(mcu_status.get_launch_ctrl_active()));
+      // Reset the launch controller each time we toggle it
+      launchControl->initLaunchController(millis());
+#if DEBUG
+      Serial.printf("DEBUG: Set launch control to %d", mcu_status.get_launch_ctrl_active());
+#endif
+    }
     if (mcu_status.get_launch_ctrl_active())
     {
+      // does it make mroe sense to run the launch controller here?
+      launchControl->run(millis(), calculated_torque);
       // Do launch control things
+      switch (launchControl->getState())
+      {
+      case launchState::IDLE:
+      {
+        // If button is held for 1 second, APPS is floored (90%), brake is not active, and calc torque is not 0 (0 would indicate there is a fault present)
+        // THEN: go to WAITING_TO_LAUNCH
+        if (dash_->get_button_held_duration(6, 1000) && (pedals->getAppsTravel() > 0.9) && !(mcu_status.get_brake_pedal_active()) && calculated_torque > 0)
+        {
+          launchControl->setState(launchState::WAITING_TO_LAUNCH,millis());
+          break;
+        }
+        break;
+      }
+      case launchState::WAITING_TO_LAUNCH:
+      {
+        // If gas is released, return to IDLE
+        if ((pedals->getAppsTravel() > 0.9) || (calculated_torque <=(0.9*600)))
+        {
+          launchControl->setState(launchState::IDLE,millis());
+          break;
+        }
+        // If gas is still pinned and button has been relased for 500ms, start LAUNCHING
+        if ((pedals->getAppsTravel()> 0.9) && dash_->get_button_released_duration(6,500))
+        {
+          launchControl->setState(launchState::LAUNCHING,millis());
+        }
+        break;
+      }
+      case launchState::LAUNCHING:
+      {
+        if ((mcu_status.get_brake_pedal_active()))
+        {
+          // Terminate launch control early if the brake is pressed
+          launchControl->setState(launchState::FINISHED,millis());
+          break;
+        }
+        // TODO do i run the launch controller here?
+        // launchControl->run(millis(),calculated_torque);
+        break;
+      }
+      case launchState::FINISHED:
+      {
+        // Finished! exit launch control active!
+        mcu_status.set_launch_ctrl_active(0);
+        break;
+      }
+      }
     }
 #if USE_INVERTER
     pm100->calc_and_send_current_limit(pm100->getmcBusVoltage(), DISCHARGE_POWER_LIM, CHARGE_POWER_LIM);

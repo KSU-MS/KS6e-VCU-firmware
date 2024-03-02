@@ -22,6 +22,10 @@ void PedalHandler::run_pedals()
     this->bse1.sensor_run();
 }
 
+float PedalHandler::getAppsTravel()
+{
+    return (this->apps1.getTravelRatio() + this->apps2.getTravelRatio())/2;
+}
 /**
  * @brief calculate torque to be commanded based on accel pedal position
  * 
