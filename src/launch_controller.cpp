@@ -12,13 +12,13 @@ void launchController::initLaunchController(unsigned long sysTime)
     driverTorqueRequest = 0;
     lcTorqueRequest = 0;
     outputTorqueCommand = 0;
-    setState(launchState::IDLE,sysTime);
+    this->setState(launchState::IDLE,sysTime);
 }
 launchState launchController::getState()
 {
     return this->launchControlState;
 }
-launchState launchController::setState(launchState nextState, unsigned long sysTime)
+launchState launchController::setState(const launchState nextState, unsigned long sysTime)
 {
     launchState currentState = this->getState();
     if (currentState == nextState)
@@ -46,6 +46,7 @@ launchState launchController::setState(launchState nextState, unsigned long sysT
     }
     }
 
+    launchControlState = nextState;
     // State ENTRY logic
     switch (nextState)
     {
@@ -67,7 +68,7 @@ launchState launchController::setState(launchState nextState, unsigned long sysT
     }
     case launchState::FINISHED:
     {
-        this->disableTorqueCommanding = true;
+        this->disableTorqueCommanding = false;
         break;
     }
     }
@@ -78,10 +79,11 @@ void launchController::run(unsigned long sysTime, int &torqueRequest)
 {
     launchCurrentTime = sysTime;
     launchElapsedTime = launchCurrentTime - launchStartTime;
+    driverTorqueRequest = torqueRequest;
 
     if (disableTorqueCommanding)
     {
-        torqueRequest = 0;
+        outputTorqueCommand = 0;
     }
 
     switch (this->getState())
@@ -100,17 +102,19 @@ void launchController::run(unsigned long sysTime, int &torqueRequest)
     }
     case launchState::LAUNCHING:
     {
-        if (launchElapsedTime > launchControlMaxDuration)
+        if (launchElapsedTime >= launchControlMaxDuration)
         {
             this->setState(launchState::FINISHED,sysTime);
+            break;
         }
-        outputTorqueCommand = this->calculateTorque(launchElapsedTime, torqueRequest);
+        outputTorqueCommand = this->calculateTorque(launchElapsedTime, driverTorqueRequest);
 
         break;
     }
     case launchState::FINISHED:
     {
-        this->disableTorqueCommanding = true;
+        outputTorqueCommand = driverTorqueRequest;
+        this->disableTorqueCommanding = false;
         break;
     }
     }
@@ -120,8 +124,10 @@ int launchController::calculateTorque(unsigned long elapsedTime, int maxTorque)
 {
     int torqueOut = 0;
     // @jstri114 peep dis
-    // lcTorqueRequest = (cal5 * pow(elapsedTime, 5)) + (cal4 * pow(elapsedTime, 4)) + (cal3 * pow(elapsedTime, 3)) + (cal2 * pow(elapsedTime, 2)) + (cal1 * (elapsedTime)) + calIntercept;
-    lcTorqueRequest = (1 / 250) * (elapsedTime) + calIntercept; // Performs the calibration curve math, shrimple linear for now
+    lcTorqueRequest = (cal5 * pow(elapsedTime, 5)) + (cal4 * pow(elapsedTime, 4)) + (cal3 * pow(elapsedTime, 3)) + (cal2 * pow(elapsedTime, 2)) + (cal1 * (elapsedTime)) + calIntercept;
+    lcTorqueRequest *= 10; // Scale for inverter
+    // this linear equation goes nowhere
+    // lcTorqueRequest = (1.0/25.0) * (elapsedTime) + calIntercept; // Performs the calibration curve math, shrimple linear for now
     if (lcTorqueRequest > maxTorque)
     {
         torqueOut = maxTorque;

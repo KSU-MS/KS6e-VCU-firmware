@@ -375,14 +375,15 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     {
       // does it make mroe sense to run the launch controller here?
       launchControl->run(millis(), calculated_torque);
+      calculated_torque = launchControl->getTorqueOutput();
       // Do launch control things
       switch (launchControl->getState())
       {
       case launchState::IDLE:
       {
-        // If button is held for 1 second, APPS is floored (90%), brake is not active, and calc torque is not 0 (0 would indicate there is a fault present)
+        // If button is held for 1 second, APPS is floored (90%), brake is not active, and impl_occ is false
         // THEN: go to WAITING_TO_LAUNCH
-        if (dash_->get_button_held_duration(6, 1000) && (pedals->getAppsTravel() > 0.9) && !(mcu_status.get_brake_pedal_active()) && calculated_torque > 0)
+        if (dash_->get_button_held_duration(6, 1000) && (pedals->getAppsTravel() > 0.9) && !(mcu_status.get_brake_pedal_active()) && !impl_occ)
         {
           launchControl->setState(launchState::WAITING_TO_LAUNCH,millis());
           break;
@@ -392,12 +393,12 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       case launchState::WAITING_TO_LAUNCH:
       {
         // If gas is released, return to IDLE
-        if ((pedals->getAppsTravel() > 0.9) || (calculated_torque <=(0.9*600)))
+        if ((pedals->getAppsTravel() < 0.5) || (calculated_torque <=(0.5*600))) // TODO be less redundant?
         {
           launchControl->setState(launchState::IDLE,millis());
           break;
         }
-        // If gas is still pinned and button has been relased for 500ms, start LAUNCHING
+        // If gas is still pinned and button has been released for 500ms, start LAUNCHING
         if ((pedals->getAppsTravel()> 0.9) && dash_->get_button_released_duration(6,500))
         {
           launchControl->setState(launchState::LAUNCHING,millis());
@@ -406,9 +407,9 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       }
       case launchState::LAUNCHING:
       {
-        if ((mcu_status.get_brake_pedal_active()))
+        if ((mcu_status.get_brake_pedal_active()) || impl_occ)
         {
-          // Terminate launch control early if the brake is pressed
+          // Terminate launch control early if the brake is pressed or there was a pedal fault
           launchControl->setState(launchState::FINISHED,millis());
           break;
         }

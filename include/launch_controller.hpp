@@ -26,8 +26,9 @@ private:
 public:
     void initLaunchController(unsigned long sysTime);
     launchState getState();
-    launchState setState(launchState nextState, unsigned long sysTime);
+    launchState setState(const launchState nextState, unsigned long sysTime);
     int calculateTorque(unsigned long elapsedTime, int maxTorque);
     void run(unsigned long sysTime, int &torqueRequest);
+    int getTorqueOutput() const { return outputTorqueCommand;};
 };
 #endif
