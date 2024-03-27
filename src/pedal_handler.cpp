@@ -274,8 +274,8 @@ void PedalHandler::verify_pedals(
 }
 
 // idgaf anything below (all wheel speed)
-double PedalHandler::get_wsfr() { return wsfr_t.current_rpm; }
-double PedalHandler::get_wsfl() { return wsfl_t.current_rpm; }
+float PedalHandler::get_wsfr() { return wsfr_t.current_rpm; }
+float PedalHandler::get_wsfl() { return wsfl_t.current_rpm; }
 /**
  * @brief update wheel speed readings
  * 

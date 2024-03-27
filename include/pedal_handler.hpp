@@ -13,6 +13,7 @@
 #include "parameters.hpp"
 #include "KS2eVCUgpios.hpp"
 #include "FlexCAN_util.hpp"
+#include <common_structs.h>
 
 // check that the pedals are reading within 10% of each other
 // sum of the two readings should be within 10% of the average travel
@@ -83,8 +84,8 @@ public:
     void run_pedals();
     void ws_run();
     void update_wheelspeed(unsigned long current_time_millis, wheelspeeds_t *ws, FreqMeasureMulti *freq);
-    double get_wsfl();
-    double get_wsfr();
+    float get_wsfl();
+    float get_wsfr();
     void send_readings();
     bool get_board_sensor_readings();
     void read_pedal_values_debug(uint16_t value);

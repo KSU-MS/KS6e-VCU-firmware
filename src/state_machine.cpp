@@ -373,14 +373,12 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     }
     if (mcu_status.get_launch_ctrl_active())
     {
-      // does it make mroe sense to run the launch controller here?
-      launchControl->run(millis(), calculated_torque);
-      calculated_torque = launchControl->getTorqueOutput();
       // Do launch control things
       switch (launchControl->getState())
       {
       case launchState::IDLE:
       {
+        calculated_torque=0; // Set torque to zero in IDLE
         // If button is held for 1 second, APPS is floored (90%), brake is not active, and impl_occ is false
         // THEN: go to WAITING_TO_LAUNCH
         if (dash_->get_button_held_duration(6, 1000) && (pedals->getAppsTravel() > 0.9) && !(mcu_status.get_brake_pedal_active()) && !impl_occ)
@@ -392,14 +390,15 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       }
       case launchState::WAITING_TO_LAUNCH:
       {
+        calculated_torque=0; // Set torque to zero in WAITING_TO_LAUNCH
         // If gas is released, return to IDLE
         if ((pedals->getAppsTravel() < 0.5) || (calculated_torque <=(0.5*600))) // TODO be less redundant?
         {
           launchControl->setState(launchState::IDLE,millis());
           break;
         }
-        // If gas is still pinned and button has been released for 500ms, start LAUNCHING
-        if ((pedals->getAppsTravel()> 0.9) && dash_->get_button_released_duration(6,500))
+        // If gas is still pinned and button has been released for 1000ms, start LAUNCHING
+        if ((pedals->getAppsTravel()> 0.9) && !dash_->get_button6() && dash_->get_button_released_duration(6,1000))
         {
           launchControl->setState(launchState::LAUNCHING,millis());
         }
@@ -413,8 +412,9 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
           launchControl->setState(launchState::FINISHED,millis());
           break;
         }
-        // TODO do i run the launch controller here?
-        // launchControl->run(millis(),calculated_torque);
+        wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(),pedals->get_wsfr(),pm100->getmcMotorRPM(),pm100->getmcMotorRPM()};
+        launchControl->run(millis(), calculated_torque, wheelSpeedData);
+        calculated_torque = launchControl->getTorqueOutput();
         break;
       }
       case launchState::FINISHED:

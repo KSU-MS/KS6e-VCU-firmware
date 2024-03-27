@@ -116,8 +116,8 @@ void Inverter::writeEnableNoTorque()
  */
 bool Inverter::command_torque(int torque)
 {
-    uint8_t torquePart1 = torque % 256;
-    uint8_t torquePart2 = torque / 256;
+    uint8_t torquePart1 = torque & 0xFF;
+    uint8_t torquePart2 = torque >> 8;
     uint8_t angularVelocity1 = 0, angularVelocity2 = 0;
     bool emraxDirection = true; // true for forward, false for reverse
     bool inverterEnable = true; // go brrr

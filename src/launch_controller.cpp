@@ -1,11 +1,5 @@
 #include "launch_controller.hpp"
 
-const float cal5 = -0.000000000000085; // Fifth
-const float cal4 = 0.000000000114956;  // Fourth
-const float cal3 = 0.000000015913376;  // Third
-const float cal2 = 0.000011808754927;  // Second
-const float cal1 = 0.093415288604319;  // First order of poly
-const float calIntercept = 10.361085973494500;
 
 void launchController::initLaunchController(unsigned long sysTime)
 {
@@ -25,116 +19,79 @@ launchState launchController::setState(const launchState nextState, unsigned lon
     {
         return currentState;
     }
-    // State exit logic
-    switch (currentState)
-    {
-    case launchState::IDLE:
-    {
-        break;
-    }
-    case launchState::WAITING_TO_LAUNCH:
-    {
-        break;
-    }
-    case launchState::LAUNCHING:
-    {
-        break;
-    }
-    case launchState::FINISHED:
-    {
-        break;
-    }
-    }
-
-    launchControlState = nextState;
-    // State ENTRY logic
-    switch (nextState)
-    {
-    case launchState::IDLE:
-    {
-        this->disableTorqueCommanding = true;
-        break;
-    }
-    case launchState::WAITING_TO_LAUNCH:
-    {
-        this->disableTorqueCommanding = true;
-        break;
-    }
-    case launchState::LAUNCHING:
-    {
-        this->launchStartTime = sysTime;
-        this->disableTorqueCommanding = false;
-        break;
-    }
-    case launchState::FINISHED:
-    {
-        this->disableTorqueCommanding = false;
-        break;
-    }
-    }
+    this->launchControlState = nextState;
+    this->launchStartTime = sysTime;
     return this->getState();
 }
 
-void launchController::run(unsigned long sysTime, int &torqueRequest)
+void launchController::run(unsigned long sysTime, int &torqueRequest, wheelSpeeds_s &wheelSpeedData)
 {
     launchCurrentTime = sysTime;
     launchElapsedTime = launchCurrentTime - launchStartTime;
     driverTorqueRequest = torqueRequest;
 
-    if (disableTorqueCommanding)
-    {
-        outputTorqueCommand = 0;
-    }
-
-    switch (this->getState())
-    {
-    case launchState::IDLE:
-    {
-        // Do nothing
-        this->disableTorqueCommanding = true;
-        break;
-    }
-    case launchState::WAITING_TO_LAUNCH:
-    {
-        // Do nothing?
-        this->disableTorqueCommanding = true;
-        break;
-    }
-    case launchState::LAUNCHING:
+    if (this->getState() == launchState::LAUNCHING)
     {
         if (launchElapsedTime >= launchControlMaxDuration)
         {
             this->setState(launchState::FINISHED,sysTime);
-            break;
         }
-        outputTorqueCommand = this->calculateTorque(launchElapsedTime, driverTorqueRequest);
-
-        break;
+        outputTorqueCommand = this->calculateTorque(launchElapsedTime, driverTorqueRequest, wheelSpeedData);
+        // Clamp output torque
+        if (outputTorqueCommand > driverTorqueRequest)
+        {
+            outputTorqueCommand = driverTorqueRequest;
+        }
     }
-    case launchState::FINISHED:
+    else if (this->getState() == launchState::FINISHED)
     {
         outputTorqueCommand = driverTorqueRequest;
-        this->disableTorqueCommanding = false;
-        break;
     }
-    }
+    else { outputTorqueCommand = 0; } // Set output to zero if not in LAUNCHING or FINISHED
 }
 
-int launchController::calculateTorque(unsigned long elapsedTime, int maxTorque)
+// Torque in = torque out in base LC class
+int launchController::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
 {
-    int torqueOut = 0;
+    float torqueOut = 0;
+    torqueOut = maxTorque;
+    return static_cast<int>(torqueOut);
+}
+
+// Calculate the launch control system's ideal torque output
+int lc_lut::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
+{
+    float torqueOut = 0;
     // @jstri114 peep dis
-    lcTorqueRequest = (cal5 * pow(elapsedTime, 5)) + (cal4 * pow(elapsedTime, 4)) + (cal3 * pow(elapsedTime, 3)) + (cal2 * pow(elapsedTime, 2)) + (cal1 * (elapsedTime)) + calIntercept;
-    lcTorqueRequest *= 10; // Scale for inverter
+    torqueOut = (cal5 * pow(elapsedTime, 5)) + (cal4 * pow(elapsedTime, 4)) + (cal3 * pow(elapsedTime, 3)) + (cal2 * pow(elapsedTime, 2)) + (cal1 * (elapsedTime)) + calIntercept;
+    torqueOut *= 10; // Scale for inverter
     // this linear equation goes nowhere
-    // lcTorqueRequest = (1.0/25.0) * (elapsedTime) + calIntercept; // Performs the calibration curve math, shrimple linear for now
-    if (lcTorqueRequest > maxTorque)
+    // torqueOut = (1.0/25.0) * (elapsedTime) + calIntercept; // Performs the calibration curve math, shrimple linear for now
+    return static_cast<int>(torqueOut);
+}
+
+// PID to get optimal slip
+int lc_pid::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData)
+{
+    float torqueOut = 0;
+    // Calculate front and rear wheel speeds - take average of left and right
+    float frontRpmAvg = ((wheelSpeedData.fl+wheelSpeedData.fr)/2);
+    float rearRpmAvg =  ((wheelSpeedData.rl+wheelSpeedData.rr)/2);
+    // avoid zero division
+    if (frontRpmAvg || rearRpmAvg <= 0.001)
     {
-        torqueOut = maxTorque;
+        this->input = 0; // treat it like 0 slip (maybe this is bad)
     }
     else
     {
-        torqueOut = lcTorqueRequest;
+        // Slip = (rear / front) - 1
+        // ie. 1000rpm/900rpm = 1.111..
+        // 1.111 - 1 = 0.111 slip ratio
+        this->input = (rearRpmAvg / frontRpmAvg) - 1;
     }
-    return torqueOut;
+
+    pid.run(elapsedTime);
+    torqueOut = output * maxTorque;
+
+    return static_cast<int>(torqueOut);  
 }
