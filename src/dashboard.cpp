@@ -43,14 +43,14 @@ void Dashboard::update_dash(uint8_t input)
 bool Dashboard::get_button_held_duration(uint8_t button, unsigned long duration_ms)
 {
     bool wasHeld = this->get_button(button) && (this->get_button_last_pressed_time(button) >= duration_ms);
-    set_button_last_pressed_time(0,button);
+    if (wasHeld) {set_button_last_pressed_time(0,button);}
     return wasHeld;
 }
 // true if time since a button was released > duration_ms (if you want to delay an action for example)
 bool Dashboard::get_button_released_duration(uint8_t button, unsigned long duration_ms)
 {
     bool wasReleased = !(this->get_button(button)) && (this->get_button_last_pressed_time(button) >= duration_ms);
-    set_button_last_pressed_time(0,button);
+    if (wasReleased) {set_button_last_pressed_time(0,button);}
     return wasReleased;
 }
 

@@ -1,6 +1,7 @@
 #ifndef LAUNCH_CONTROLLER_HPP
 #define LAUNCH_CONTROLLER_HPP
 #include <cmath>
+#include <cstring>
 #include <common_structs.h>
 #include <AutoPID.h>
 
@@ -12,6 +13,22 @@ enum class launchState
     FINISHED = 3
 };
 
+enum launchControlTypes_e
+{
+    LC_DRIVERCONTROL = 0, // No firmware limiting, driver throttle directly
+    LC_LOOKUP = 1, // Polynomial/ lookup table
+    LC_PID = 2, // PID slip control
+    LC_NUM_CONTROLLERS
+};
+
+struct diagData_s {
+    unsigned long launchElapsedTime;
+    int16_t outputTorqueCommand;
+    uint8_t launchState;
+    uint8_t launchType;
+    diagData_s(unsigned long time, int16_t outputTorque, uint8_t state, uint8_t type)
+        : launchElapsedTime(time), outputTorqueCommand(outputTorque), launchState(state), launchType(type) {}
+};
 class launchController
 {
 
@@ -31,10 +48,12 @@ public:
     launchState setState(const launchState nextState, unsigned long sysTime); // general
     virtual int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
     virtual void run(unsigned long sysTime, int &torqueRequest, wheelSpeeds_s &wheelSpeedData); // instance specific
+    virtual launchControlTypes_e getType() {return launchControlTypes_e::LC_DRIVERCONTROL;}
     int getTorqueOutput() const { return outputTorqueCommand; };                                // general
+    diagData_s getDiagData(); // 8 byte info on torque controller
 };
 
-class lc_lut : public launchController
+class launchControllerLookup : public launchController
 {
 private:
     const float cal5 = -0.000000000000085; // Fifth
@@ -46,8 +65,9 @@ private:
 
 public:
     int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
+    launchControlTypes_e getType() {return launchControlTypes_e::LC_LOOKUP;}
 };
-class lc_pid : public launchController
+class launchControllerPID : public launchController
 {
 private:
     const double tireSlipLow = 0.05;
@@ -61,11 +81,14 @@ private:
     AutoPID pid;
 
 public:
-    lc_pid() : pid(&input, &setpoint, &output, output_min, output_max, d_kp, d_ki, d_kd)
+    launchControllerPID() : pid(&input, &setpoint, &output, output_min, output_max, d_kp, d_ki, d_kd)
     {
         pid.setBangBang(tireSlipLow);
         pid.setTimeStep(1);
     }
     int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
+    launchControlTypes_e getType() {return launchControlTypes_e::LC_PID;}
+
+
 };
 #endif

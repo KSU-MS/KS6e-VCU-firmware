@@ -86,7 +86,7 @@ public:
     void update_wheelspeed(unsigned long current_time_millis, wheelspeeds_t *ws, FreqMeasureMulti *freq);
     float get_wsfl();
     float get_wsfr();
-    void send_readings();
+    bool send_readings();
     bool get_board_sensor_readings();
     void read_pedal_values_debug(uint16_t value);
     float getAppsTravel();

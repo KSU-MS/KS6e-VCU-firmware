@@ -138,8 +138,9 @@ bool PedalHandler::read_pedal_values()
  * @brief send pedal readings over CAN, with timers built in to function
  * 
  */
-void PedalHandler::send_readings()
+bool PedalHandler::send_readings()
 {
+    bool sent = false;
     if (pedal_out_20hz->check())
     {
         // Send Main Control Unit pedal reading message @ 20hz
@@ -156,8 +157,8 @@ void PedalHandler::send_readings()
         int16_t rpm_wsfr = (int16_t)(wsfr_t.current_rpm);
         int16_t rpm_buf[]={rpm_wsfl,rpm_wsfr};
         memcpy(&tx_msg2.buf[0], &rpm_buf, sizeof(rpm_buf));
-        WriteCANToInverter(tx_msg);
-        WriteCANToInverter(tx_msg2);
+        sent = WriteCANToInverter(tx_msg);
+        sent = WriteCANToInverter(tx_msg2);
     }
     if (pedal_out_1hz->check())
     {
@@ -178,6 +179,7 @@ void PedalHandler::send_readings()
         WriteCANToInverter(tx_msg3);
         WriteCANToInverter(tx_msg4);
     }
+    return sent;
 }
 
 /**

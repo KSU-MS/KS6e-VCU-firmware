@@ -64,8 +64,8 @@ Dashboard dash;
 Inverter pm100(&timer_mc_kick_timer, &timer_inverter_enable, &timer_motor_controller_send, &timer_current_limit_send, &dash);
 Accumulator accum(&precharge_timeout,&ksu_can);
 PedalHandler pedals(&timer_debug_pedals_raw, &pedal_out_20hz, &pedal_out_1hz, &speedPID, &current_rpm, &set_rpm, &throttle_out, &wsfl, &wsfr);
-launchController launchControl;
-StateMachine state_machine(&pm100, &accum, &timer_ready_sound, &dash, &debug_tim, &pedals, &launchControl, &pedal_check);
+launchControlSystem launchSystem;
+StateMachine state_machine(&pm100, &accum, &timer_ready_sound, &dash, &debug_tim, &pedals, &launchSystem, &pedal_check);
 MCU_status mcu_status = MCU_status();
 
 static CAN_message_t mcu_status_msg;

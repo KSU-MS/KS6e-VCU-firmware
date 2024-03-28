@@ -50,6 +50,12 @@ void launchController::run(unsigned long sysTime, int &torqueRequest, wheelSpeed
     else { outputTorqueCommand = 0; } // Set output to zero if not in LAUNCHING or FINISHED
 }
 
+diagData_s launchController::getDiagData()
+{
+    diagData_s diagData = diagData_s{this->launchElapsedTime,this->outputTorqueCommand,static_cast<uint8_t>(this->getState()),static_cast<uint8_t>(this->getType())};
+    return diagData;
+}
+
 // Torque in = torque out in base LC class
 int launchController::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
 {
@@ -59,7 +65,7 @@ int launchController::calculateTorque(unsigned long elapsedTime, int maxTorque, 
 }
 
 // Calculate the launch control system's ideal torque output
-int lc_lut::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
+int launchControllerLookup::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
 {
     float torqueOut = 0;
     // @jstri114 peep dis
@@ -71,7 +77,7 @@ int lc_lut::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeed
 }
 
 // PID to get optimal slip
-int lc_pid::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData)
+int launchControllerPID::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData)
 {
     float torqueOut = 0;
     // Calculate front and rear wheel speeds - take average of left and right

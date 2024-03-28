@@ -9,7 +9,7 @@
 
 TEST(lcTesting, test_launch_control_exists)
 {
-    lc_lut launchControl;
+    launchControllerLookup launchControl;
     unsigned long systime = 0;
     launchControl.initLaunchController(systime);
     EXPECT_EQ(launchControl.getState(), launchState::IDLE);
@@ -24,7 +24,7 @@ TEST(lcTesting, test_launch_control_exists)
 TEST(lcTesting, test_lc_notorque)
 {
     wheelSpeeds_s wheelSpeedData = {0,0,0,0};
-    lc_lut lc;
+    launchControllerLookup lc;
     unsigned long t = 0;
     lc.initLaunchController(t);
     int torque = 2400;
@@ -49,7 +49,7 @@ TEST(lcTesting, test_lc_notorque)
 TEST(lcTesting, test_lc_ramp)
 {
     wheelSpeeds_s wheelSpeedData = {0,0,0,0};
-    lc_lut lc;
+    launchControllerLookup lc;
     unsigned long t = 0;
     int nm = 2400;
     lc.initLaunchController(t);

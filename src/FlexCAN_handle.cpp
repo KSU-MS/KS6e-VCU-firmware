@@ -1,5 +1,5 @@
 #include "FlexCAN_util.hpp"
-
+#include "state_machine.hpp"
 FlexCAN_T4<CAN3, RX_SIZE_1024, TX_SIZE_1024> DaqCAN_;
 FlexCAN_T4<CAN2, RX_SIZE_1024, TX_SIZE_1024> Inverter_CAN_;
 FlexCAN_T4<CAN1, RX_SIZE_1024, TX_SIZE_1024> AccumulatorCAN_;
