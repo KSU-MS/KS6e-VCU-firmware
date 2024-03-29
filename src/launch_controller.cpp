@@ -56,13 +56,6 @@ diagData_s launchController::getDiagData()
     return diagData;
 }
 
-// Torque in = torque out in base LC class
-int launchController::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
-{
-    float torqueOut = 0;
-    torqueOut = maxTorque;
-    return static_cast<int>(torqueOut);
-}
 
 // Calculate the launch control system's ideal torque output
 int launchControllerLookup::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 

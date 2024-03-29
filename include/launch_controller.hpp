@@ -46,7 +46,12 @@ public:
     void initLaunchController(unsigned long sysTime);                         // general to all launchControllers
     launchState getState();                                                   // general
     launchState setState(const launchState nextState, unsigned long sysTime); // general
-    virtual int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
+    virtual int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
+    {
+        float torqueOut = 0;
+        torqueOut = maxTorque;
+        return static_cast<int>(torqueOut);
+    };
     virtual void run(unsigned long sysTime, int &torqueRequest, wheelSpeeds_s &wheelSpeedData); // instance specific
     virtual launchControlTypes_e getType() {return launchControlTypes_e::LC_DRIVERCONTROL;}
     int getTorqueOutput() const { return outputTorqueCommand; };                                // general
@@ -72,9 +77,9 @@ class launchControllerPID : public launchController
 private:
     const double tireSlipLow = 0.05;
     const double tireSlipHigh = 0.2;
-    double d_kp = 1.5;
-    double d_ki = 0;
-    double d_kd = 0.5;
+    double d_kp = 4.0;
+    double d_ki = 2.0;
+    double d_kd = 1.0;
     const double output_min = 0.6; // Minimum output of the PID controller
     const double output_max = 1.0; // Max output of the PID controller
     double input, setpoint, output;
@@ -83,7 +88,9 @@ private:
 public:
     launchControllerPID() : pid(&input, &setpoint, &output, output_min, output_max, d_kp, d_ki, d_kd)
     {
-        pid.setBangBang(tireSlipLow);
+        output=0;
+        setpoint = tireSlipHigh;
+        pid.setBangBang(0);
         pid.setTimeStep(1);
     }
     int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);

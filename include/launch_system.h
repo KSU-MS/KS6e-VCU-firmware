@@ -10,7 +10,7 @@ class launchControlSystem
         launchControlTypes_e getActiveSystem() {return lcType;}
         launchController* getController()
         {
-            return &lc_map[lcType];
+            return static_cast<launchController*>(lc_map[lcType]);
         }
         void toggleController(unsigned long systime);
         void printControllerType(char buf[60]);
@@ -20,10 +20,10 @@ class launchControlSystem
         launchController lc_base;
         launchControllerLookup lc_lookup;
         launchControllerPID lc_pid;
-        std::unordered_map<launchControlTypes_e,launchController> lc_map = {
-            {launchControlTypes_e::LC_DRIVERCONTROL, lc_base},
-            {launchControlTypes_e::LC_LOOKUP, lc_lookup},
-            {launchControlTypes_e::LC_PID, lc_pid}
+        std::unordered_map<launchControlTypes_e, void*> lc_map = {
+            {launchControlTypes_e::LC_DRIVERCONTROL, &lc_base},
+            {launchControlTypes_e::LC_LOOKUP, &lc_lookup},
+            {launchControlTypes_e::LC_PID, &lc_pid}
         };
 
 
