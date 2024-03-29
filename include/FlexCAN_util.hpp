@@ -19,10 +19,7 @@ bool sendStructOnCan(T data, uint32_t id)
 {
     CAN_message_t msg;
     msg.id = id;
-    if (sizeof(data) > sizeof(msg.buf))
-    {
-        return 0;
-    }
+    static_assert(sizeof(data) <= sizeof(msg.buf), "Data size exceeds message buffer size");
     memcpy(msg.buf, &data,sizeof(data));
     return WriteToDaqCAN(msg);
 }

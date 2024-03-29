@@ -51,15 +51,17 @@ const float accumulator_cell_minimum_voltage = 2.5;
 const float accumulator_cell_nominal_voltage = 3.6;
 const float accumulator_cell_maximum_voltage = 4.2;
 const float bspd_current_high_threshold = 5000/(accumulator_cell_count * accumulator_cell_nominal_voltage); // Current value where BSPD current detection should be high (5kw at nominal voltage)
-#define MIN_HV_VOLTAGE 600 // apparently this is divided by ten? yes maybe, bc getmcbusvoltage returns a can packet which is the bus voltage*10? idk
+#define MIN_HV_VOLTAGE 60 * 10 // 60V is HV threshold, multiplied by ten for inverter scaling factor
 #define DISCHARGE_POWER_LIM 75000
 #define CHARGE_POWER_LIM 9000
 
-// Torque Calculation Defines
-#define ALPHA 0.99 // This is the coefficient for exponential smoothing
 const float cutoff_10hz = 10; // Hz
 // Calculate filtering alpha value for the cutoff frequency  
 const double FILTERING_ALPHA_10HZ = 2 * 3.14 * cutoff_10hz / (1 + 2 * 3.14 * cutoff_10hz);
+
+const float cutoff_1hz = 1; // Hz
+// Calculate filtering alpha value for the cutoff frequency  
+const double FILTERING_ALPHA_1HZ = 2 * 3.14 * cutoff_1hz / (1 + 2 * 3.14 * cutoff_1hz);
 
 // Note that the variable max_torque is uin8_t
 // So it will overflow past a value of 255

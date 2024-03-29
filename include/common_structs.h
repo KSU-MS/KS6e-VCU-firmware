@@ -5,5 +5,7 @@ typedef struct wheelSpeeds_s {
     float fr;
     float rl;
     float rr;
+    wheelSpeeds_s(float fl, float fr, float rl, float rr)
+        : fl(fl), fr(fr), rl(rl), rr(rr){}
 } wheelSpeeds_s;
 #endif
