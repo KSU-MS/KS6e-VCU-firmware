@@ -6,7 +6,7 @@ Metro debugPrint = Metro(100);
 void PedalHandler::init_pedal_handler()
 {
     // TODO don't htink you actually have to init analog GPIOs on teensy
-    for(int i; i < sizeof(analog_init_list)/sizeof(int);i++){
+    for(int i = 0; i < sizeof(analog_init_list)/sizeof(analog_init_list[0]);i++){
         pinMode(analog_init_list[i],INPUT);
     }
     pedal_ADC = ADC_SPI(CS_ADC, DEFAULT_SPI_SPEED);
