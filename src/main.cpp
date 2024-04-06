@@ -15,7 +15,7 @@
 #include "inverter.hpp"
 #include "accumulator.hpp"
 #include "state_machine.hpp"
-#include "device_status.h"
+#include "ksu_device_status.h"
 
 #define NEBUG
 static can_obj_ksu_ev_can_h_t ksu_can;
