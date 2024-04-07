@@ -94,6 +94,17 @@ public:
         pid.setBangBang(0);
         pid.setTimeStep(1);
     }
+    launchControllerPID(double kp, double ki, double kd) : pid(&input, &setpoint, &output, output_min, output_max, kp, ki, kd)
+    {
+        this->d_kd=kd;
+        this->d_kp = kp;
+        this->d_ki = ki;
+        pid.setGains(d_kp,d_ki,d_kd);
+        output=0;
+        setpoint = tireSlipHigh;
+        pid.setBangBang(0);
+        pid.setTimeStep(1);
+    }
     int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
     launchControlTypes_e getType() {return launchControlTypes_e::LC_PID;}
 };
