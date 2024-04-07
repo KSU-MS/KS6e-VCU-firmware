@@ -22,7 +22,7 @@ static can_obj_ksu_ev_can_h_t ksu_can;
 // Metro timers for inverter:
 Metro timer_mc_kick_timer = Metro(50, 1); // Motor controller heartbeat timer
 Metro timer_inverter_enable = Metro(2000, 1); // Timeout for inverter enabling
-Metro timer_motor_controller_send = Metro(10, 1); // Motor controller torque command timer
+Metro timer_motor_controller_send = Metro(5, 1); // Motor controller torque command timer
 Metro timer_current_limit_send = Metro(10, 1); // Motor controller power limiting timer
 
 // timers for the accumulator:

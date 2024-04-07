@@ -138,7 +138,10 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   mcu_status.set_bspd_ok_high(pedals->get_board_sensor_readings());
   mcu_status.set_bspd_current_high((accumulator->get_acc_current() > (bspd_current_high_threshold * 10)));
 
-  if (pedals->send_readings() && mcu_status.get_launch_ctrl_active()) { sendStructOnCan(lcSystem->getController()->getDiagData(),ID_VCU_BASE_LAUNCH_CONTROLLER_INFO); }
+  if (pedals->send_readings())
+  {
+    sendStructOnCan(lcSystem->getController()->getDiagData(),ID_VCU_BASE_LAUNCH_CONTROLLER_INFO);
+  }
 
   // If dash button is on and has been on for 750ms
   if (dash_->get_button(6) && (dash_->get_button_last_pressed_time(6)) > 750)

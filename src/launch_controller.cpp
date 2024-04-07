@@ -32,7 +32,7 @@ void launchController::run(unsigned long sysTime, int &torqueRequest, wheelSpeed
 
     if (this->getState() == launchState::LAUNCHING)
     {
-        if (launchElapsedTime >= launchControlMaxDuration)
+        if (launchElapsedTime > launchControlMaxDuration)
         {
             this->setState(launchState::FINISHED,sysTime);
         }
@@ -41,6 +41,10 @@ void launchController::run(unsigned long sysTime, int &torqueRequest, wheelSpeed
         if (outputTorqueCommand > driverTorqueRequest)
         {
             outputTorqueCommand = driverTorqueRequest;
+        }
+        else if (outputTorqueCommand < 0)
+        {
+            outputTorqueCommand = 0;
         }
     }
     else if (this->getState() == launchState::FINISHED)
@@ -90,7 +94,7 @@ int launchControllerPID::calculateTorque(unsigned long elapsedTime, int maxTorqu
     }
 
     pid.run(elapsedTime);
-    torqueOut = output * maxTorque;
+    torqueOut = maxTorque + (output * maxTorque);
 
     return static_cast<int>(torqueOut);  
 }

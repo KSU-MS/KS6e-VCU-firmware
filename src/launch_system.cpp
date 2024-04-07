@@ -35,6 +35,12 @@ void launchControlSystem::printControllerType(char buf[60])
             memcpy(buf,string,sizeof(string));
             break;
         }
+        case (launchControlTypes_e::LC_LINEAR):
+        {
+            char string[] = "Controller type is launchControllerLinear";
+            memcpy(buf,string,sizeof(string));
+            break;
+        }
         case (launchControlTypes_e::LC_NUM_CONTROLLERS):
         {
             char string[] = "? LOL";

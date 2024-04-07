@@ -109,4 +109,27 @@ TEST(lcTesting, test_lc_pid)
         t++;
     }
 }
+
+TEST(lcTesting, test_lc_linear)
+{
+
+    launchControlSystem lcSystem;
+    launchControlTypes_e typeToSet = launchControlTypes_e::LC_LINEAR;
+    lcSystem.setActiveSystem(typeToSet);
+    launchControlTypes_e c = lcSystem.getController()->getType();
+    ASSERT_EQ(c,typeToSet);
+    launchController* launchControl = lcSystem.getController();
+
+    unsigned long t = 0;
+    launchControl->initLaunchController(t);
+    launchControl->setState(launchState::LAUNCHING,t);
+    for (float i = 10; i < 6000; i += 10)
+    {
+        wheelSpeeds_s wsData = wheelSpeeds_s(i,i,i*1.01,i*1.01);
+        int driver_torque = 240;
+        launchControl->run(t+1,driver_torque,wsData);
+        printf("time: %dms, slip: %f, output torque: %d\n",t,wsData.rl/wsData.fl,launchControl->getTorqueOutput());
+        t++;
+    }
+}
 #endif

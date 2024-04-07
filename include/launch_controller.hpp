@@ -18,6 +18,7 @@ enum launchControlTypes_e
     LC_DRIVERCONTROL = 0, // No firmware limiting, driver throttle directly
     LC_LOOKUP = 1, // Polynomial/ lookup table
     LC_PID = 2, // PID slip control
+    LC_LINEAR = 3, // Linear equation based
     LC_NUM_CONTROLLERS
 };
 
@@ -29,20 +30,19 @@ struct diagData_s {
     diagData_s(unsigned long time, int16_t outputTorque, uint8_t state, uint8_t type)
         : launchElapsedTime(time), outputTorqueCommand(outputTorque), launchState(state), launchType(type) {}
 };
+
 class launchController
 {
-
 private:
-    const unsigned long launchControlMaxDuration = 1200; // milliseconds that the launching period will run for
     unsigned long launchStartTime = 0;                   // ms the starting time of the launch
     unsigned long launchCurrentTime = 0;                 // ms the current time of the launch
     unsigned long launchElapsedTime = 0;                 // ms time elapsed from start of launch
     int driverTorqueRequest = 0;                         // Driver torque command if using pedal travel
     int lcTorqueRequest = 0;                             // launch control system torque command
     int outputTorqueCommand = 0;                         // The final torque command that will be output from the launch controller
-    bool disableTorqueCommanding = true;                 // to disable torque commanding in IDLE and WAIT states
     launchState launchControlState;                      // state enum to control LC actions
 public:
+    unsigned long launchControlMaxDuration = 1200; // milliseconds that the launching period will run for
     void initLaunchController(unsigned long sysTime);                         // general to all launchControllers
     launchState getState();                                                   // general
     launchState setState(const launchState nextState, unsigned long sysTime); // general
@@ -72,6 +72,7 @@ public:
     int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
     launchControlTypes_e getType() {return launchControlTypes_e::LC_LOOKUP;}
 };
+
 class launchControllerPID : public launchController
 {
 private:
@@ -80,8 +81,8 @@ private:
     double d_kp = 4.0;
     double d_ki = 2.0;
     double d_kd = 1.0;
-    const double output_min = 0.6; // Minimum output of the PID controller
-    const double output_max = 1.0; // Max output of the PID controller
+    const double output_min = -1.0; // Minimum output of the PID controller
+    const double output_max = 0; // Max output of the PID controller
     double input, setpoint, output;
     AutoPID pid;
 
@@ -95,7 +96,41 @@ public:
     }
     int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
     launchControlTypes_e getType() {return launchControlTypes_e::LC_PID;}
+};
 
+class launchControllerLinear : public launchController
+{
+private:
+    double m; // Slope of the linear equation
+    double b; // Intercept of the linear equation
+public:
+    /**
+     * @brief Construct a new launch Controller Linear object
+     * 
+     * @param startTime the time to start ramping at (assume 0)
+     * @param startTorque the torque to start the ramp at
+     * @param endTime the time to end at
+     * @param endTorque 
+     */
+    launchControllerLinear(double startTime, double startTorque, double endTime, double endTorque)
+    {
+        m = (endTorque - startTorque) / (endTime - startTime);
+        b = startTorque - m * startTime;
+        this->launchControlMaxDuration = endTime;
+    }
+    void updateRamp(double startTime, double startTorque, double endTime, double endTorque)
+    {
+        m = (endTorque - startTorque) / (endTime - startTime);
+        b = startTorque - m * startTime;
+        
+    }
+    int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData)
+    {
+        double x = elapsedTime;
+        double y = m * x + b;            // Calculate y value using linear equation y = mx + b
+        return static_cast<int>(y); // Return the calculated torque as an integer
+    }
 
+    launchControlTypes_e getType() {return launchControlTypes_e::LC_LINEAR;}
 };
 #endif
