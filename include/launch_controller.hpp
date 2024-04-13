@@ -139,7 +139,7 @@ public:
     {
         double x = elapsedTime;
         double y = m * x + b;            // Calculate y value using linear equation y = mx + b
-        return static_cast<int>(y); // Return the calculated torque as an integer
+        return static_cast<int>(y * 10); // Return the calculated torque as an integer
     }
 
     launchControlTypes_e getType() {return launchControlTypes_e::LC_LINEAR;}

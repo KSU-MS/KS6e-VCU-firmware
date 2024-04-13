@@ -33,7 +33,7 @@ private:
     launchController lc_base;
     launchControllerLookup lc_lookup;
     launchControllerPID lc_pid = launchControllerPID(4.0,2.0,1.0);
-    launchControllerLinear lc_linear = launchControllerLinear(0, TORQUE_2, 200, TORQUE_4);
+    launchControllerLinear lc_linear = launchControllerLinear(0, 100, 200, TORQUE_4);
     // This map should contain ALL types
     std::unordered_map<launchControlTypes_e, void *> lc_map = {
         {launchControlTypes_e::LC_DRIVERCONTROL, &lc_base},

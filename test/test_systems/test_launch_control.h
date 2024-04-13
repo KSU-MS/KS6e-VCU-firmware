@@ -103,7 +103,7 @@ TEST(lcTesting, test_lc_pid)
     for (float i = 10; i < 6000; i += 10)
     {
         wheelSpeeds_s wsData = wheelSpeeds_s(i,i,i*1.01,i*1.01);
-        int driver_torque = 240;
+        int driver_torque = 2400;
         launchControl->run(t+1,driver_torque,wsData);
         printf("time: %dms, slip: %f, output torque: %d\n",t,wsData.rl/wsData.fl,launchControl->getTorqueOutput());
         t++;
@@ -126,7 +126,7 @@ TEST(lcTesting, test_lc_linear)
     for (float i = 10; i < 6000; i += 10)
     {
         wheelSpeeds_s wsData = wheelSpeeds_s(i,i,i*1.01,i*1.01);
-        int driver_torque = 240;
+        int driver_torque = 2400;
         launchControl->run(t+1,driver_torque,wsData);
         printf("time: %dms, slip: %f, output torque: %d\n",t,wsData.rl/wsData.fl,launchControl->getTorqueOutput());
         t++;

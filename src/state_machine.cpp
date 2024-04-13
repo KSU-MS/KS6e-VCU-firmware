@@ -144,9 +144,9 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   }
 
   // If dash button is on and has been on for 750ms
-  if (dash_->get_button(6) && (dash_->get_button_last_pressed_time(6)) > 750)
+  // AND the motor is not spinning!!
+  if (dash_->get_button_held_duration(6,750) && (pm100->getmcMotorRPM() <= 300))
   {
-    dash_->set_button_last_pressed_time(0, 6);
     mcu_status.toggle_max_torque(mcu_status.get_torque_mode());
     mcu_status.set_max_torque(torque_mode_list[mcu_status.get_torque_mode() - 1]);
     send_state_msg(mcu_status);
@@ -163,6 +163,8 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     lcSystem->setActiveSystem(static_cast<launchControlTypes_e>(next_controller));
     // init new system
     lcSystem->getController()->initLaunchController(millis());
+    sendStructOnCan(lcSystem->getController()->getDiagData(),ID_VCU_BASE_LAUNCH_CONTROLLER_INFO);
+
   }
   // Do Torque Calcs here
   int calculated_torque = 0;
