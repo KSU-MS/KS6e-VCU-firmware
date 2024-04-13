@@ -154,13 +154,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   // If dash button held and LC not active
   if (dash_->get_button_held_duration(2,500) && !mcu_status.get_launch_ctrl_active())
   {
-    int current_controller = static_cast<int>(lcSystem->getActiveSystem());
-    int next_controller = current_controller+1;
-    if (next_controller >= static_cast<int>(launchControlTypes_e::LC_NUM_CONTROLLERS))
-    {
-      next_controller = 0;
-    }
-    lcSystem->setActiveSystem(static_cast<launchControlTypes_e>(next_controller));
+    lcSystem->toggleController(millis());
     // init new system
     lcSystem->getController()->initLaunchController(millis());
     sendStructOnCan(lcSystem->getController()->getDiagData(),ID_VCU_BASE_LAUNCH_CONTROLLER_INFO);
