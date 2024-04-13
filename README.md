@@ -5,6 +5,13 @@ the vcu CAN out is still TODO mostly, currently it spits out all RX / TX traffic
 below is a loose flow of the data and what handles what
 
 
+## building
+to build, run ```pio run -e teensy41```
+## Running tests
+
+to build and run native tests on windows, follow these instructions: https://code.visualstudio.com/docs/cpp/config-mingw 
+then, run tests by calling ```pio test -e test_env```
+
 
 ```mermaid
     graph LR;

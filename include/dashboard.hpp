@@ -51,10 +51,10 @@ public:
      * @brief Get the button last pressed time object
      * 
      * @param buttonNumber 
-     * @return elapsedMillis 
+     * @return unsigned long 
      */
-    elapsedMillis get_button_last_pressed_time(uint8_t buttonNumber);
-    void set_button_last_pressed_time(uint8_t setpoint,uint8_t buttonNumber);
+    unsigned long get_button_last_pressed_time(uint8_t buttonNumber);
+    void set_button_last_pressed_time(unsigned long setpoint,uint8_t buttonNumber);
     void update_dash(uint8_t input);
     bool new_dash_msg_received;
     float last_received_timestamp = 0;

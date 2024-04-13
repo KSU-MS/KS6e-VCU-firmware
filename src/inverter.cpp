@@ -61,23 +61,7 @@ void Inverter::updateInverterCAN()
         case (ID_DASH_BUTTONS):
         {
             uint8_t new_inputs = rxMsg.buf[0];
-            float timestamp = millis() / float(1000);
-        #if DEBUG
-            Serial.printf("Dash last received interval: %f\n", (timestamp - (dash->last_received_timestamp)));
-        #endif
-            dash->last_received_timestamp = timestamp;
-            for (int i = 0; i < 6; i++)
-            {
-                uint8_t bit = (0x1 << i);
-                bool new_val = new_inputs & bit;
-                bool old_val = (dash->get_buttons() & bit);
-                if (new_val != old_val)
-                {
-                    Serial.printf("Button number %d changed from %d to %d",i+1,old_val,new_val);
-                    dash->set_button_last_pressed_time(0,i);
-                }
-            }
-            dash->set_buttons(new_inputs);
+            dash->update_dash(new_inputs);
         }
         default:
             break;
