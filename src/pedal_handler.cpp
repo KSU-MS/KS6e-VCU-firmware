@@ -152,8 +152,17 @@ void PedalHandler::send_readings()
         int16_t rpm_wsfr = (int16_t)(wsfr_t.current_rpm);
         int16_t rpm_buf[]={rpm_wsfl,rpm_wsfr};
         memcpy(&tx_msg2.buf[0], &rpm_buf, sizeof(rpm_buf));
+
+        CAN_message_t tx_msg3;
+        // Send pedal travel readings @ 20hz
+        tx_msg3.id = ID_VCU_PEDAL_TRAVEL;
+        pedal_travels_t readings = this->get_pedal_travels();
+        tx_msg3.len = sizeof(readings);
+        memcpy(tx_msg3.buf,&readings,sizeof(readings));
+
         WriteCANToInverter(tx_msg);
         WriteCANToInverter(tx_msg2);
+        WriteCANToInverter(tx_msg3);
     }
     if (pedal_out_1hz->check())
     {

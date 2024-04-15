@@ -34,6 +34,15 @@ typedef struct wheelspeeds_t
     int count = 0;
     unsigned long time1;
 } wheelspeeds_t;
+
+typedef struct pedal_travels_t
+{
+    int16_t apps1_travel;
+    int16_t apps2_travel;
+    int16_t bse1_travel;
+    pedal_travels_t(int16_t a1,int16_t a2, int16_t b1): apps1_travel(a1),apps2_travel(a2),bse1_travel(b1){}
+} pedal_travels_t;
+
 class PedalHandler
 {
 private:
@@ -78,6 +87,7 @@ public:
 
     int16_t calculate_regen(int16_t &motor_speed, int16_t max_regen_torque);
     int16_t calculate_torque(int16_t &motor_speed, int &max_torque);
+    void reset_regen() { smoothed_regen_torque = 0;};
     void verify_pedals(bool &accel_is_plausible, bool &brake_is_plausible, bool &accel_and_brake_plausible, bool &impl_occ);
     bool read_pedal_values();
     void run_pedals();
@@ -87,6 +97,10 @@ public:
     double get_wsfr();
     void send_readings();
     bool get_board_sensor_readings();
+    pedal_travels_t get_pedal_travels()
+    {
+        return pedal_travels_t(static_cast<int16_t>(apps1.getTravelRatio()*1000),static_cast<int16_t>(apps2.getTravelRatio()*1000),static_cast<int16_t>(bse1.getTravelRatio()*1000));
+    };
     void read_pedal_values_debug(uint16_t value);
 };
 

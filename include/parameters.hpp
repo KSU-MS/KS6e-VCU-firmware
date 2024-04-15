@@ -23,7 +23,7 @@
 #define PID_TC_MODE false //enable traction control
 #define EXP_TORQUE_CURVE false //set to TRUE for kustom pedal curve
 #define WHEELSPEED_TOOTH_COUNT 18
-#define RPM_TIMEOUT 500 // Timeout for wheel speed RPM to reset to 0
+#define RPM_TIMEOUT 1000 // Timeout for wheel speed RPM to reset to 0
 #define MIN_BRAKE_PEDAL 400           // ~0.5v, set on 2-29-2024
 #define START_BRAKE_PEDAL 970       // 1.58V, set on 2-29-2024
 #define BRAKE_ACTIVE 2300            // Threshold for brake pedal active (set to be doable by hand)

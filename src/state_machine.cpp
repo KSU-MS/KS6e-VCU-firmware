@@ -149,7 +149,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     send_state_msg(mcu_status);
   }
   // Do Torque Calcs here
-  int calculated_torque = 0;
+  int16_t calculated_torque = 0;
   bool accel_is_plausible = false;
   bool brake_is_plausible = false;
   bool accel_and_brake_plausible = false;
@@ -176,6 +176,10 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     if (mcu_status.get_brake_pedal_active() && dash_->get_button2() && calculated_torque < 5)
     {
       calculated_torque = pedals->calculate_regen(motor_speed, REGEN_NM);
+    }else
+    {
+      // Reset regen to 0 when not commanding it
+      pedals->reset_regen();
     }
   }
 
