@@ -24,7 +24,7 @@ launchState launchController::setState(const launchState nextState, unsigned lon
     return this->getState();
 }
 
-void launchController::run(unsigned long sysTime, int &torqueRequest, wheelSpeeds_s &wheelSpeedData)
+void launchController::run(unsigned long sysTime, int16_t &torqueRequest, wheelSpeeds_s &wheelSpeedData)
 {
     launchCurrentTime = sysTime;
     launchElapsedTime = launchCurrentTime - launchStartTime;
@@ -62,7 +62,7 @@ diagData_s launchController::getDiagData()
 
 
 // Calculate the launch control system's ideal torque output
-int launchControllerLookup::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
+int16_t launchControllerLookup::calculateTorque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData) 
 {
     float torqueOut = 0;
     // @jstri114 peep dis
@@ -74,7 +74,7 @@ int launchControllerLookup::calculateTorque(unsigned long elapsedTime, int maxTo
 }
 
 // PID to get optimal slip
-int launchControllerPID::calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData)
+int16_t launchControllerPID::calculateTorque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData)
 {
     float torqueOut = 0;
     // Calculate front and rear wheel speeds - take average of left and right

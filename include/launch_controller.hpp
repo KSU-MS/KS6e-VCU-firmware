@@ -46,13 +46,13 @@ public:
     void initLaunchController(unsigned long sysTime);                         // general to all launchControllers
     launchState getState();                                                   // general
     launchState setState(const launchState nextState, unsigned long sysTime); // general
-    virtual int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData) 
+    virtual int16_t calculateTorque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData) 
     {
         float torqueOut = 0;
         torqueOut = maxTorque;
         return static_cast<int>(torqueOut);
     };
-    virtual void run(unsigned long sysTime, int &torqueRequest, wheelSpeeds_s &wheelSpeedData); // instance specific
+    virtual void run(unsigned long sysTime, int16_t &torqueRequest, wheelSpeeds_s &wheelSpeedData); // instance specific
     virtual launchControlTypes_e getType() {return launchControlTypes_e::LC_DRIVERCONTROL;}
     int getTorqueOutput() const { return outputTorqueCommand; };                                // general
     diagData_s getDiagData(); // 8 byte info on torque controller
@@ -69,7 +69,7 @@ private:
     const float calIntercept = 10.361085973494500;
 
 public:
-    int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
+    int16_t calculateTorque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData);
     launchControlTypes_e getType() {return launchControlTypes_e::LC_LOOKUP;}
 };
 
@@ -105,7 +105,7 @@ public:
         pid.setBangBang(0);
         pid.setTimeStep(1);
     }
-    int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData);
+    int16_t calculateTorque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData);
     launchControlTypes_e getType() {return launchControlTypes_e::LC_PID;}
 };
 
@@ -135,7 +135,7 @@ public:
         b = startTorque - m * startTime;
         
     }
-    int calculateTorque(unsigned long elapsedTime, int maxTorque, wheelSpeeds_s &wheelSpeedData)
+    int16_t calculateTorque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData)
     {
         double x = elapsedTime;
         double y = m * x + b;            // Calculate y value using linear equation y = mx + b

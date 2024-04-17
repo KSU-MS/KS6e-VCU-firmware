@@ -31,6 +31,7 @@
 #define ID_VCU_BOARD_ANALOG_READS_ONE                               0xC9
 #define ID_VCU_BOARD_ANALOG_READS_TWO                               0xCA
 #define ID_VCU_BASE_LAUNCH_CONTROLLER_INFO                          0xCB
+#define ID_VCU_PEDAL_TRAVEL                                         0xCC
 #define ID_DASH_BUTTONS                                             0xEB
 #define ID_DASH_FW_VERSION                                          0xEC
 #define ID_MC_CURRENT_LIMIT_COMMAND                                 0x202

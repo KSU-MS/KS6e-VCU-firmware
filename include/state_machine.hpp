@@ -9,6 +9,7 @@
 #include "dashboard.hpp"
 #include "parameters.hpp"
 #include "launch_system.h"
+#include <distance_tracker.h>
 
 class StateMachine
 {
@@ -21,6 +22,7 @@ private:
     PedalHandler *pedals;
     launchControlSystem *lcSystem;
     Metro *pedal_check_;
+    distance_tracker_s distance_tracker;
     void set_state(MCU_status &mcu_status, MCU_STATE new_state);
     void send_state_msg(MCU_status &mcu_status);
 public:

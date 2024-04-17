@@ -6,9 +6,9 @@ Metro debugPrint = Metro(100);
 void PedalHandler::init_pedal_handler()
 {
     // TODO don't htink you actually have to init analog GPIOs on teensy
-    // for(int i; i < sizeof(analog_init_list)/sizeof(int);i++){
-    //     pinMode(analog_init_list[i],INPUT);
-    // }
+    for(int i = 0; i < sizeof(analog_init_list)/sizeof(analog_init_list[0]);i++){
+        pinMode(analog_init_list[i],INPUT);
+    }
     pedal_ADC = ADC_SPI(CS_ADC, DEFAULT_SPI_SPEED);
     pid_->setTimeStep(PID_TIMESTEP);
     wsfl_->begin(WSFL);
@@ -156,8 +156,17 @@ bool PedalHandler::send_readings()
         int16_t rpm_wsfr = (int16_t)(wsfr_t.current_rpm);
         int16_t rpm_buf[]={rpm_wsfl,rpm_wsfr};
         memcpy(&tx_msg2.buf[0], &rpm_buf, sizeof(rpm_buf));
+
+        CAN_message_t tx_msg3;
+        // Send pedal travel readings @ 20hz
+        tx_msg3.id = ID_VCU_PEDAL_TRAVEL;
+        pedal_travels_t readings = this->get_pedal_travels();
+        tx_msg3.len = sizeof(readings);
+        memcpy(tx_msg3.buf,&readings,sizeof(readings));
+
         sent = WriteCANToInverter(tx_msg);
         sent = WriteCANToInverter(tx_msg2);
+        sent = WriteCANToInverter(tx_msg3);
     }
     if (pedal_out_1hz->check())
     {

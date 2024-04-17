@@ -98,37 +98,28 @@ void Inverter::writeEnableNoTorque()
  * @return true if sent succesfully
  * @return false if not
  */
-bool Inverter::command_torque(int torque)
+bool Inverter::command_torque(int16_t torque)
 {
-    uint8_t torquePart1 = torque & 0xFF;
-    uint8_t torquePart2 = torque >> 8;
     uint8_t angularVelocity1 = 0, angularVelocity2 = 0;
     bool emraxDirection = true; // true for forward, false for reverse
     bool inverterEnable = true; // go brrr
-    // // TODO actual regen mapping and not on/off, this was jerky on dyno
-    //  if(pedals->VCUPedalReadings.get_brake_transducer_1()>=1950){
-    //    torquePart1=0x9C;
-    //    torquePart2=0xFf; //-10nm sussy regen
-    //  }
+
     uint8_t torqueCommand[] = {
-        torquePart1, torquePart2, angularVelocity1, angularVelocity2, emraxDirection, inverterEnable, 0, 0};
+        0, 0, angularVelocity1, angularVelocity2, emraxDirection, inverterEnable, 0, 0};
+    memcpy(&torqueCommand[0],&torque,sizeof(torque));
+    // Send torque command if timer has fired
     if (timer_motor_controller_send->check())
     {
         CAN_message_t ctrlMsg;
         ctrlMsg.len = 8;
         ctrlMsg.id = ID_MC_COMMAND_MESSAGE;
         memcpy(ctrlMsg.buf, torqueCommand, sizeof(ctrlMsg.buf));
-        if (WriteCANToInverter(ctrlMsg))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return (WriteCANToInverter(ctrlMsg));
     }
-
-    return true;
+    else //do nothing 
+    {
+        return false;
+    }
 }
 
 //

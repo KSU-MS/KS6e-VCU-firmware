@@ -101,6 +101,7 @@ int16_t dummy_motor_speed = 1000;
 void setup()
 {
     Serial.begin(57600);
+    Serial.setTimeout(0);
     delay(100);
 
     InitCAN();

@@ -31,7 +31,7 @@ TEST(lcTesting, test_lc_notorque)
     launchController* launchControl = lcSystem.getController();
     unsigned long t = 0;
     launchControl->initLaunchController(t);
-    int torque = 2400;
+    int16_t torque = 2400;
     launchControl->run(t,torque,wheelSpeedData);
     launchControl->getTorqueOutput();
     EXPECT_EQ(launchControl->getTorqueOutput(),0);
@@ -60,7 +60,7 @@ TEST(lcTesting, test_lc_ramp)
     ASSERT_EQ(c,typeToSet);
     launchController* launchControl = lcSystem.getController();
     unsigned long t = 0;
-    int nm = 2400;
+    int16_t nm = 2400;
     launchControl->initLaunchController(t);
     launchControl->setState(launchState::LAUNCHING,t);
     std::cout << "time" << "," << "torqueOut" << "\n";
@@ -103,7 +103,7 @@ TEST(lcTesting, test_lc_pid)
     for (float i = 10; i < 6000; i += 10)
     {
         wheelSpeeds_s wsData = wheelSpeeds_s(i,i,i*1.01,i*1.01);
-        int driver_torque = 2400;
+        int16_t driver_torque = 2400;
         launchControl->run(t+1,driver_torque,wsData);
         printf("time: %dms, slip: %f, output torque: %d\n",t,wsData.rl/wsData.fl,launchControl->getTorqueOutput());
         t++;
@@ -126,7 +126,7 @@ TEST(lcTesting, test_lc_linear)
     for (float i = 10; i < 6000; i += 10)
     {
         wheelSpeeds_s wsData = wheelSpeeds_s(i,i,i*1.01,i*1.01);
-        int driver_torque = 2400;
+        int16_t driver_torque = 2400;
         launchControl->run(t+1,driver_torque,wsData);
         printf("time: %dms, slip: %f, output torque: %d\n",t,wsData.rl/wsData.fl,launchControl->getTorqueOutput());
         t++;
