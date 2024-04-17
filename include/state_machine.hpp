@@ -8,6 +8,7 @@
 #include "dashboard.hpp"
 #include <Metro.h>
 #include "parameters.hpp"
+#include <distance_tracker.h>
 
 class StateMachine
 {
@@ -19,6 +20,7 @@ private:
     Metro *debug_;
     PedalHandler *pedals;
     Metro *pedal_check_;
+    distance_tracker_s distance_tracker;
     void set_state(MCU_status &mcu_status, MCU_STATE new_state);
     void send_state_msg(MCU_status &mcu_status);
 public:

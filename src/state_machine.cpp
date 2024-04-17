@@ -5,6 +5,7 @@ void StateMachine::init_state_machine(MCU_status &mcu_status)
 {
   set_state(mcu_status, MCU_STATE::STARTUP);
   pedals->init_pedal_handler();
+  distance_tracker.tick(micros());
 }
 
 // Send a state message on every state transition so we don't miss any
@@ -138,12 +139,17 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   mcu_status.set_bspd_ok_high(pedals->get_board_sensor_readings());
   mcu_status.set_bspd_current_high((accumulator->get_acc_current() > (bspd_current_high_threshold * 10)));
 
+  if (mcu_status.get_state() == MCU_STATE::READY_TO_DRIVE)
+  {
+    distance_tracker.update(accumulator->get_acc_current(), accumulator->get_acc_voltage(), pedals->get_wsfl(), WHEEL_CIRCUMFERENCE, micros());
+    mcu_status.set_distance_travelled(distance_tracker.get_data().distance_m);
+  }
   pedals->send_readings();
 
-  // If dash button is on and has been on for 
+  // If dash button is on and has been on for
   if (dash_->get_button(6) && (dash_->get_button_last_pressed_time(6)) > 750)
   {
-    dash_->set_button_last_pressed_time(0,6);
+    dash_->set_button_last_pressed_time(0, 6);
     mcu_status.toggle_max_torque(mcu_status.get_torque_mode());
     mcu_status.set_max_torque(torque_mode_list[mcu_status.get_torque_mode() - 1]);
     send_state_msg(mcu_status);
@@ -176,7 +182,8 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     if (mcu_status.get_brake_pedal_active() && dash_->get_button2() && calculated_torque < 5)
     {
       calculated_torque = pedals->calculate_regen(motor_speed, REGEN_NM);
-    }else
+    }
+    else
     {
       // Reset regen to 0 when not commanding it
       pedals->reset_regen();

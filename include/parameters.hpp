@@ -22,7 +22,8 @@
 #define PID_MODE false //enable cruise control
 #define PID_TC_MODE false //enable traction control
 #define EXP_TORQUE_CURVE false //set to TRUE for kustom pedal curve
-#define WHEELSPEED_TOOTH_COUNT 18
+#define WHEELSPEED_TOOTH_COUNT 18 // Wheel Speed sensor tooth coutn
+const float WHEEL_CIRCUMFERENCE  = 0.229*PI*2;
 #define RPM_TIMEOUT 1000 // Timeout for wheel speed RPM to reset to 0
 #define MIN_BRAKE_PEDAL 400           // ~0.5v, set on 2-29-2024
 #define START_BRAKE_PEDAL 970       // 1.58V, set on 2-29-2024
@@ -40,7 +41,7 @@
 #define END_ACCELERATOR_PEDAL_2 2565    // Position to max out acceleration
 #define MAX_ACCELERATOR_PEDAL_2 3000    // High accelerator implausibility threshold
 
-#define APPS_ALLOWABLE_TRAVEL_DEVIATION 50 // % allowable deviation of APPS1 and APPS2 travel readings
+#define APPS_ALLOWABLE_TRAVEL_DEVIATION 50 // % (percentage) allowable deviation of APPS1 and APPS2 travel readings
 
 #define REGEN_NM 60 
 #define BSPD_OK_HIGH_THRESHOLD 500 // ADC reading when BSPD is Latched (OK state)
@@ -50,10 +51,11 @@ const int accumulator_cell_count = 72;
 const float accumulator_cell_minimum_voltage = 2.5;
 const float accumulator_cell_nominal_voltage = 3.6;
 const float accumulator_cell_maximum_voltage = 4.2;
-const float bspd_current_high_threshold = 5000/(accumulator_cell_count * accumulator_cell_nominal_voltage); // Current value where BSPD current detection should be high (5kw at nominal voltage)
-#define MIN_HV_VOLTAGE 600 // apparently this is divided by ten? yes maybe, bc getmcbusvoltage returns a can packet which is the bus voltage*10? idk
-#define DISCHARGE_POWER_LIM 75000
-#define CHARGE_POWER_LIM 9000
+const float bspd_trip_power = 5000;
+const float bspd_current_high_threshold = bspd_trip_power/(accumulator_cell_count * accumulator_cell_nominal_voltage); // Current value where BSPD current detection should be high (5kw at nominal voltage)
+const int MIN_HV_VOLTAGE = 600; // apparently this is divided by ten? yes maybe, bc getmcbusvoltage returns a can packet which is the bus voltage*10? idk
+const int  DISCHARGE_POWER_LIM  = 75000;
+const int CHARGE_POWER_LIM = 9000;
 
 // Torque Calculation Defines
 #define ALPHA 0.99 // This is the coefficient for exponential smoothing
