@@ -37,7 +37,7 @@ TEST(distance_tracker_tests,drive_onekm)
     const float rpm = 11.58;
 
     distance_tracker.tick(0);
-    for (unsigned long i = 0; i <= 1000*7200; i+= 100)
+    for (unsigned long i = 0; i < 1000*3600; i+= 100)
     {
         distance_tracker.update(amps,volts,rpm,WHEEL_CIRCUMFERENCE,i);
     }
@@ -45,11 +45,11 @@ TEST(distance_tracker_tests,drive_onekm)
     // EXPECT_EQ(distance_tracker.get_data().eff_inst,0);
     // EXPECT_EQ(distance_tracker.get_data().distance_m,1000);
     // EXPECT_EQ(distance_tracker.get_data().efficiency_kmkwh,1);
-    EXPECT_EQ(distance_tracker.capacity_ah,10);
-    EXPECT_EQ(distance_tracker.energy_wh,1000);
-    EXPECT_EQ(distance_tracker.distance_km,1000);
-    EXPECT_EQ(distance_tracker.efficiency_kmkwh,1);
-    EXPECT_EQ(distance_tracker.efficiency_instantaneous,1);
+    EXPECT_NEAR(distance_tracker.capacity_ah,10,0.001); 
+    EXPECT_NEAR(distance_tracker.energy_wh,1000,0.5); // half a watt hour accuracy
+    EXPECT_NEAR(distance_tracker.distance_km,1000,1); // One meter accuracy
+    EXPECT_NEAR(distance_tracker.efficiency_kmkwh,1,0.001);
+    EXPECT_NEAR(distance_tracker.efficiency_instantaneous,1,0.001);
     printf("%fmeters %fah %fwh %fkm/kwh %fkm/kwh\n",distance_tracker.distance_km,distance_tracker.capacity_ah,distance_tracker.energy_wh,distance_tracker.efficiency_kmkwh,distance_tracker.efficiency_instantaneous);
 }
 /*

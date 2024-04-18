@@ -3,7 +3,7 @@
 //  initializes the mcu status and pedal handler
 void StateMachine::init_state_machine(MCU_status &mcu_status)
 {
-  set_state(mcu_status, MCU_STATE::READY_TO_DRIVE);
+  set_state(mcu_status, MCU_STATE::STARTUP);
   pedals->init_pedal_handler();
   distance_tracker.tick(millis());
 }
