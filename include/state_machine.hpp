@@ -25,12 +25,15 @@ private:
     distance_tracker_s distance_tracker;
     void set_state(MCU_status &mcu_status, MCU_STATE new_state);
     void send_state_msg(MCU_status &mcu_status);
+    Metro can_20hz_timer = Metro(10,1);
 public:
     StateMachine(Inverter *inv, Accumulator *acc, Metro *rs_tim, Dashboard *dash, Metro *debug, PedalHandler *pedals, launchControlSystem *lcSys,Metro *ped_t)
         : pm100(inv), accumulator(acc), timer_ready_sound(rs_tim), dash_(dash), debug_(debug), pedals(pedals), lcSystem(lcSys),pedal_check_(ped_t){};
 
     void init_state_machine(MCU_status &mcu_status);
     void handle_state_machine(MCU_status &mcu_status);
+// void joe_mock_lc(MCU_status* mcu_status, int torq, bool implaus);
+
 };
 
 #endif

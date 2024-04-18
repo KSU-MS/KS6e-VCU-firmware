@@ -21,7 +21,7 @@ bool sendStructOnCan(T data, uint32_t id)
     msg.id = id;
     static_assert(sizeof(data) <= sizeof(msg.buf), "Data size exceeds message buffer size");
     memcpy(msg.buf, &data,sizeof(data));
-    return WriteToDaqCAN(msg);
+    return WriteCANToInverter(msg);
 }
 void InitCAN();
 

@@ -1,5 +1,6 @@
 #ifndef PARAMETERS_HPP
 #define PARAMETERS_HPP
+#include <stdint.h>
 #ifndef PI
 #define PI 3.1415926535897932384626433832795
 #endif
@@ -24,6 +25,7 @@
 #define PID_MODE false //enable cruise control
 #define PID_TC_MODE false //enable traction control
 #define EXP_TORQUE_CURVE false //set to TRUE for kustom pedal curve
+const unsigned long LAUNCHCONTROL_RELEASE_DELAY = 1500;
 #define WHEELSPEED_TOOTH_COUNT 18 // Wheel Speed sensor tooth coutn
 const float WHEEL_CIRCUMFERENCE  = 0.229*PI*2;
 #define RPM_TIMEOUT 1000 // Timeout for wheel speed RPM to reset to 0

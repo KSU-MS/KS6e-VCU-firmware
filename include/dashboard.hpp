@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #pragma pack(push,1)
-
+const int LAUNCH_CONTROL_BUTTON = 5;
 class Dashboard 
 {
 

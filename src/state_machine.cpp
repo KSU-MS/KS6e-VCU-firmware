@@ -3,7 +3,7 @@
 //  initializes the mcu status and pedal handler
 void StateMachine::init_state_machine(MCU_status &mcu_status)
 {
-  set_state(mcu_status, MCU_STATE::STARTUP);
+  set_state(mcu_status, MCU_STATE::READY_TO_DRIVE);
   pedals->init_pedal_handler();
   distance_tracker.tick(millis());
 }
@@ -151,25 +151,32 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     distance_tracker.update(accumulator->get_acc_current(), accumulator->get_acc_voltage(), pedals->get_wsfl(), WHEEL_CIRCUMFERENCE, millis());
     mcu_status.set_distance_travelled(distance_tracker.get_data().distance_m);
   }
+  bool _20hz_send = can_20hz_timer.check();
   pedals->send_readings();
 
   // If dash button is on and has been on for 750ms
   // AND the motor is not spinning!!
-  if (dash_->get_button_held_duration(6,750) && (pm100->getmcMotorRPM() <= 300))
+  if ((!dash_->get_button(2)))
+{  
+  if (dash_->get_button_held_duration(6,750) && (pm100->getmcMotorRPM() <= 300) && !mcu_status.get_launch_ctrl_active())
   {
     dash_->set_button_last_pressed_time(0, 6);
     mcu_status.toggle_max_torque(mcu_status.get_torque_mode());
     mcu_status.set_max_torque(torque_mode_list[mcu_status.get_torque_mode() - 1]);
     send_state_msg(mcu_status);
   }
+  }
   // If dash button held and LC not active
-  if (dash_->get_button_held_duration(2,500) && !mcu_status.get_launch_ctrl_active())
+  if (!dash_->get_button(6))
+  {
+  if (dash_->get_button_held_duration(2,500) && lcSystem->getController()->getState() == launchState::IDLE)
   {
     lcSystem->toggleController(millis());
     // init new system
     lcSystem->getController()->initLaunchController(millis());
     sendStructOnCan(lcSystem->getController()->getDiagData(),ID_VCU_BASE_LAUNCH_CONTROLLER_INFO);
 
+  }
   }
   // Do Torque Calcs here
   int16_t calculated_torque = 0;
@@ -206,7 +213,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       pedals->reset_regen();
     }
   }
-
+  // joe_mock_lc(&mcu_status,calculated_torque,impl_occ);
   // end of functions that run every loop unconditionally
 
   // start of state machine conditional functionality
@@ -366,6 +373,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   // READY TO DRIVE
   case MCU_STATE::READY_TO_DRIVE: // --------------------
   {
+#ifdef CHEESE_RTD //teehee
 #if USE_INVERTER
 
     if (!pm100->check_TS_active())
@@ -386,16 +394,24 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       set_state(mcu_status, MCU_STATE::TRACTIVE_SYSTEM_NOT_ACTIVE);
       break;
     }
-
+#endif
     // Torque calc always runs in the superloop
-    // Toggle launch control if button 2 & 6 are held for 1 second, while brake is pressed
-    if (dash_->get_button_held_duration(2, 1000) && dash_->get_button_held_duration(6, 1000) && mcu_status.get_brake_pedal_active())
+    // Toggle launch control if button 5 held for 1 second, while brake is pressed
+    if (dash_->get_button_held_duration(LAUNCH_CONTROL_BUTTON, 1000)){ //   && mcu_status.get_brake_pedal_active()
     {
       // Toggle launch control (allows deactivating if sitting in it)
       mcu_status.set_launch_ctrl_active(!(mcu_status.get_launch_ctrl_active()));
+      // Auto-set to max torque mode
+      if (mcu_status.get_launch_ctrl_active())
+      {
+        mcu_status.set_max_torque(TORQUE_4);
+        mcu_status.set_torque_mode(4);
+      }
+      send_state_msg(mcu_status);
+
       // Reset the launch controller each time we toggle it
       lcSystem->getController()->initLaunchController(millis());
-      
+    }
 #if DEBUG
       Serial.printf("DEBUG: Set launch control to %d", mcu_status.get_launch_ctrl_active());
 #endif
@@ -408,9 +424,9 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       case launchState::IDLE:
       {
         calculated_torque=0; // Set torque to zero in IDLE
-        // If button is held for 1 second, APPS is floored (90%), brake is not active, and impl_occ is false
+        // If button is held, APPS is floored (90%), brake is not active, and impl_occ is false
         // THEN: go to WAITING_TO_LAUNCH
-        if (dash_->get_button_held_duration(6, 1000) && (pedals->getAppsTravel() > 0.9) && !(mcu_status.get_brake_pedal_active()) && !impl_occ)
+        if (dash_->get_button(6) && (pedals->getAppsTravel() > 0.9) && !(mcu_status.get_brake_pedal_active()) && !impl_occ)
         {
           lcSystem->getController()->setState(launchState::WAITING_TO_LAUNCH,millis());
           break;
@@ -421,16 +437,26 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       {
         calculated_torque=0; // Set torque to zero in WAITING_TO_LAUNCH
         // If gas is released, return to IDLE
-        if ((pedals->getAppsTravel() < 0.5) || (calculated_torque <=(0.5*600))) // TODO be less redundant?
+        if ((pedals->getAppsTravel() < 0.5))
         {
           lcSystem->getController()->setState(launchState::IDLE,millis());
           break;
         }
         // If gas is still pinned and button has been released for 1000ms, start LAUNCHING
-        if ((pedals->getAppsTravel()> 0.9) && !dash_->get_button6() && dash_->get_button_released_duration(6,1000))
+        if ((pedals->getAppsTravel()> 0.9) && !dash_->get_button6() && dash_->get_button_released_duration(6,LAUNCHCONTROL_RELEASE_DELAY))
         {
           lcSystem->getController()->setState(launchState::LAUNCHING,millis());
+          break;
         }
+        else if (dash_->get_button6())
+        {
+          dash_->set_button_last_pressed_time(0,6);
+        }
+        if (_20hz_send) {
+          lc_countdown_t countdown_t;
+          countdown_t.release_countdown = dash_->get_button_last_pressed_time(6);
+          sendStructOnCan(countdown_t,ID_VCU_LAUNCH_CONTROL_COUNTDOWN);
+          }
         break;
       }
       case launchState::LAUNCHING:
@@ -444,6 +470,9 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
         wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(),pedals->get_wsfr(),pm100->getmcMotorRPM(),pm100->getmcMotorRPM()};
         lcSystem->getController()->run(millis(), calculated_torque, wheelSpeedData);
         calculated_torque = lcSystem->getController()->getTorqueOutput();
+        // Yeet data fast when running
+        // GO FASTER THAN 20HZ TODO
+        if (_20hz_send) {(lcSystem->getController()->getDiagData(),ID_VCU_BASE_LAUNCH_CONTROLLER_INFO);}
         break;
       }
       case launchState::FINISHED:
@@ -475,3 +504,87 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   }
 #endif
 }
+
+// void StateMachine::joe_mock_lc(MCU_status* mcu_status, int torq, bool implaus)
+// { 
+//   bool impl_occ = implaus;
+//   int16_t calculated_torque = torq;
+//       // Toggle launch control if button 2 & 6 are held for 1 second, while brake is pressed));
+//     if (dash_->get_button_held_duration(LAUNCH_CONTROL_BUTTON, 1000)){
+//       if (true)
+//     {
+//       // Toggle launch control (allows deactivating if sitting in it)
+//       mcu_status->set_launch_ctrl_active(!(mcu_status->get_launch_ctrl_active()));
+//       // Reset the launch controller each time we toggle it
+//       lcSystem->getController()->initLaunchController(millis());
+//       this->send_state_msg(*mcu_status);
+//       Serial.printf("DEBUG: Set launch control to %d\n", mcu_status->get_launch_ctrl_active());
+//     }
+//     }
+//     if (mcu_status->get_launch_ctrl_active())
+//     {
+//       // Do launch control things
+//       switch (lcSystem->getController()->getState())
+//       {
+//       case launchState::IDLE:
+//       {
+//         calculated_torque=0; // Set torque to zero in IDLE
+//         // If button is held for 1 second, APPS is floored (90%), brake is not active, and impl_occ is false
+//         // THEN: go to WAITING_TO_LAUNCH
+//         float travel = pedals->getAppsTravel();
+//         Serial.printf("travel: %f brake %d impl %d\n",travel,mcu_status->get_brake_pedal_active(),impl_occ);
+//         if (!dash_->get_button(2))
+//         {       
+//           Serial.println("stage1"); 
+//           bool dashbutton = dash_->get_button(6);
+//           bool travelinrange = (travel > 0.7);
+//           bool brakeactive = !(mcu_status->get_brake_pedal_active());
+//           bool impl = !impl_occ;
+//           if (dashbutton && travelinrange && brakeactive && impl)
+//         {
+//           Serial.println("JOE");
+//           lcSystem->getController()->setState(launchState::WAITING_TO_LAUNCH,millis());
+//           break;
+//         }
+//         }
+//         break;
+//       }
+//       case launchState::WAITING_TO_LAUNCH:
+//       {
+//         calculated_torque=0; // Set torque to zero in WAITING_TO_LAUNCH
+//         // If gas is released, return to IDLE
+//         if ((pedals->getAppsTravel() < 0.5)) // TODO be less redundant?
+//         {
+//           lcSystem->getController()->setState(launchState::IDLE,millis());
+//           break;
+//         }
+//         // If gas is still pinned and button has been released for 1000ms, start LAUNCHING
+//         if ((pedals->getAppsTravel()> 0.9) && !dash_->get_button6() && dash_->get_button_released_duration(6,1000))
+//         {
+//           lcSystem->getController()->setState(launchState::LAUNCHING,millis());
+//         }
+//         break;
+//       }
+//       case launchState::LAUNCHING:
+//       {
+//         if ((mcu_status->get_brake_pedal_active()) || impl_occ)
+//         {
+//           // Terminate launch control early if the brake is pressed or there was a pedal fault
+//           lcSystem->getController()->setState(launchState::FINISHED,millis());
+//           break;
+//         }
+//         wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(),pedals->get_wsfr(),pm100->getmcMotorRPM(),pm100->getmcMotorRPM()};
+//         lcSystem->getController()->run(millis(), calculated_torque, wheelSpeedData);
+//         calculated_torque = lcSystem->getController()->getTorqueOutput();
+//         break;
+//       }
+//       case launchState::FINISHED:
+//       {
+//         // Finished! exit launch control active!
+//         mcu_status->set_launch_ctrl_active(0);
+//         break;
+//       }
+//       }
+//     Serial.printf("State: %d Resultant torque: %d\n",static_cast<int>(lcSystem->getController()->getState()),calculated_torque);
+//     }
+// }

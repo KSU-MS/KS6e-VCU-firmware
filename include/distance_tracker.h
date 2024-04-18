@@ -35,9 +35,6 @@ public:
         this->time = newtime;
         // calculate distance travelled during the last update time
         distance_km += elapsed_time_seconds * velocity_ms.oldval;
-        #ifdef ARDUINO
-        Serial.println(velocity_ms.oldval);
-        #endif
         // calculate power used during the last update time
         float kwh = (elapsed_time_seconds / 3600) * power_kw.oldval;
         energy_wh += kwh;
@@ -62,7 +59,6 @@ public:
     }
     energy_data_t get_data()
     {
-        printf("%f %f %d\n",energy_wh,energy_wh*10,static_cast<uint16_t>(energy_wh*10));
         energy_data_t data = energy_data_t(static_cast<uint16_t>(energy_wh*10), static_cast<int16_t>(efficiency_instantaneous*1000), static_cast<int16_t>(distance_km), static_cast<int16_t>(efficiency_kmkwh*1000));
         return data;
     }

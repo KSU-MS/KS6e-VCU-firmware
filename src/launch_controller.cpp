@@ -6,6 +6,7 @@ void launchController::initLaunchController(unsigned long sysTime)
     driverTorqueRequest = 0;
     lcTorqueRequest = 0;
     outputTorqueCommand = 0;
+    this->launchElapsedTime = 0;
     this->setState(launchState::IDLE,sysTime);
 }
 launchState launchController::getState()
