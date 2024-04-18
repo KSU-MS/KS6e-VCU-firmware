@@ -373,7 +373,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   // READY TO DRIVE
   case MCU_STATE::READY_TO_DRIVE: // --------------------
   {
-#ifdef CHEESE_RTD //teehee
+// #ifdef CHEESE_RTD //teehee
 #if USE_INVERTER
 
     if (!pm100->check_TS_active())
@@ -394,7 +394,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       set_state(mcu_status, MCU_STATE::TRACTIVE_SYSTEM_NOT_ACTIVE);
       break;
     }
-#endif
+// #endif
     // Torque calc always runs in the superloop
     // Toggle launch control if button 5 held for 1 second, while brake is pressed
     if (dash_->get_button_held_duration(LAUNCH_CONTROL_BUTTON, 1000)){ //   && mcu_status.get_brake_pedal_active()
