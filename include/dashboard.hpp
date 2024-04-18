@@ -11,17 +11,17 @@ class Dashboard
 public:
     Dashboard() = default;
     inline uint8_t get_buttons()  const {return button_states;}
-
+    // Not Connected
     inline bool get_button1()  const {return (button_states&0x01);} 
-    // Button 2 (yellow button) currently used for regen
+    // Green button
     inline bool get_button2()  const {return (button_states&0x02);}
-    // Button 3 is connected to RTD button as of 3-1-2024
+    // Not connected
     inline bool get_button3()  const {return (button_states&0x04);} 
-    // Unused/not connected
+    // Ready to drive
     inline bool get_button4()  const {return (button_states&0x08);}
-    // Unused/not connected
+    // Red button
     inline bool get_button5()  const {return (button_states&0x10);}
-    // Button 6 (green) used for torque mode
+    // Yellow button
     inline bool get_button6()  const {return (button_states&0x20);}
 
     inline void set_buttons(uint8_t inputs)        { button_states = inputs; }

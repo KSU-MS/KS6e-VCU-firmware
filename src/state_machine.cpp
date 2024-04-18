@@ -145,7 +145,8 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   }
 
 
-  if (mcu_status.get_state() == MCU_STATE::READY_TO_DRIVE)
+  // if (mcu_status.get_state() == MCU_STATE::READY_TO_DRIVE)
+  if (true)
   {
     distance_tracker.update(accumulator->get_acc_current(), accumulator->get_acc_voltage(), pedals->get_wsfl(), WHEEL_CIRCUMFERENCE, millis());
     mcu_status.set_distance_travelled(distance_tracker.get_data().distance_m);
