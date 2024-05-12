@@ -24,6 +24,9 @@
 #define EXP_TORQUE_CURVE false //set to TRUE for kustom pedal curve
 #define WHEELSPEED_TOOTH_COUNT 18 // Wheel Speed sensor tooth coutn
 const float WHEEL_CIRCUMFERENCE  = 0.229*PI*2;
+const float FRONT_SPROCKET_TEETH = 10;
+const float REAR_SPROCKET_TEETH = 30;
+const float FINAL_DRIVE = FRONT_SPROCKET_TEETH/REAR_SPROCKET_TEETH; 
 #define RPM_TIMEOUT 1000 // Timeout for wheel speed RPM to reset to 0
 #define MIN_BRAKE_PEDAL 400           // ~0.5v, set on 2-29-2024
 #define START_BRAKE_PEDAL 970       // 1.58V, set on 2-29-2024

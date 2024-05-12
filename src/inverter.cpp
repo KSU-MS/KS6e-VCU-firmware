@@ -138,6 +138,9 @@ bool Inverter::command_torque(int16_t torque)
             return false;
         }
     }
+    else{
+        return false;
+    }
 }
 
 //

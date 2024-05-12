@@ -1,6 +1,7 @@
 #ifndef DISTANCE_TRACKER_H
 #define DISTANCE_TRACKER_H
 #include <stdint.h>
+#include <deque>
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif
@@ -18,6 +19,28 @@ struct energy_data_t
     int16_t efficiency_kmkwh;
     energy_data_t(int16_t wh, int16_t eff, int16_t m, int16_t kmkwh) : energy_wh(wh), eff_inst(eff), distance_m(m), efficiency_kmkwh(kmkwh) {}
 };
+
+struct RollingAverage {
+    std::deque<float> buffer;
+    float sum = 0.0;
+    int maxSize;
+
+    RollingAverage(int maxBufferSize) : maxSize(maxBufferSize) {}
+
+    void addValue(float value) {
+        buffer.push_back(value);
+        sum += value;
+        if (buffer.size() > maxSize) {
+            sum -= buffer.front();
+            buffer.pop_front();
+        }
+    }
+
+    float getAverage() const {
+        return buffer.empty() ? 0.0 : sum / buffer.size();
+    }
+};
+
 
 class distance_tracker_s
 {
@@ -45,6 +68,7 @@ public:
         // update efficiencies
         efficiency_kmkwh = distance_km/energy_kwh;
         efficiency_instantaneous = (elapsed_time_seconds * velocity_ms.oldval) / (elapsed_time_seconds / 3600 * power_kw.oldval);
+        avgEff.addValue(efficiency_instantaneous);
         // set old vals to the previous new one
         power_kw.oldval = power_kw.newval;
         current_amps.oldval = current_amps.newval;
@@ -59,7 +83,7 @@ public:
     }
     energy_data_t get_data()
     {
-        energy_data_t data = energy_data_t(static_cast<int16_t>(energy_kwh*1000), static_cast<int16_t>(efficiency_instantaneous*1000), static_cast<int16_t>(distance_km*1000), static_cast<int16_t>(efficiency_kmkwh*1000));
+        energy_data_t data = energy_data_t(static_cast<int16_t>(energy_kwh*1000), static_cast<int16_t>(avgEff.getAverage()*1000), static_cast<int16_t>(distance_km*1000), static_cast<int16_t>(efficiency_kmkwh*1000));
         return data;
     }
 
@@ -73,6 +97,7 @@ private:
     float distance_km = 0;
     float efficiency_kmkwh = 0;
     float efficiency_instantaneous = 0;
+    RollingAverage avgEff = RollingAverage(200);
 };
 
 #endif
