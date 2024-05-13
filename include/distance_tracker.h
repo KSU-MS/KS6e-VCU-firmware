@@ -14,22 +14,23 @@ struct old_new_t
 struct energy_data_t
 {
     uint16_t energy_wh;
-    int16_t eff_inst;
+    uint16_t eff_inst;
     uint16_t distance_m;
-    int16_t efficiency_kmkwh;
-    energy_data_t(uint16_t wh, int16_t eff, uint16_t m, int16_t kmkwh) : energy_wh(wh), eff_inst(eff), distance_m(m), efficiency_kmkwh(kmkwh) {}
+    uint16_t efficiency_kmkwh;
+    energy_data_t(uint16_t wh, uint16_t eff, uint16_t m, uint16_t kmkwh) : energy_wh(wh), eff_inst(eff), distance_m(m), efficiency_kmkwh(kmkwh) {}
 };
 
 struct RollingAverage {
     std::deque<float> buffer;
-    float sum = 0.0;
+    float sum;
     int maxSize;
 
     RollingAverage(int maxBufferSize) : maxSize(maxBufferSize) {}
 
     void addValue(float value) {
         buffer.push_back(value);
-        sum += value;
+        sum = sum + value;
+        printf("%f",sum);
         if (buffer.size() > maxSize) {
             sum -= buffer.front();
             buffer.pop_front();
@@ -37,6 +38,7 @@ struct RollingAverage {
     }
 
     float getAverage() const {
+        printf("%d, %f",buffer.empty(),buffer.front());
         return buffer.empty() ? 0.0 : sum / buffer.size();
     }
 };
@@ -57,7 +59,7 @@ public:
         // update time
         this->time = newtime;
         // calculate distance travelled during the last update time
-        distance_km += elapsed_time_seconds * velocity_ms.oldval;
+        distance_m += elapsed_time_seconds * velocity_ms.oldval;
         // calculate power used during the last update time
         float kwh = (elapsed_time_seconds / 3600) * power_kw.oldval;
         energy_wh += kwh;
@@ -66,7 +68,7 @@ public:
         capacity_ah += (elapsed_time_seconds / 3600) * current_amps.oldval;
 
         // update efficiencies
-        efficiency_kmkwh = distance_km/energy_wh;
+        efficiency_kmkwh = distance_m/energy_wh;
         efficiency_instantaneous = (elapsed_time_seconds * velocity_ms.oldval) / (elapsed_time_seconds / 3600 * power_kw.oldval);
         avgEff.addValue(efficiency_instantaneous);
         // set old vals to the previous new one
@@ -83,12 +85,12 @@ public:
     }
     energy_data_t get_data()
     {
-        energy_data_t data = energy_data_t(static_cast<uint16_t>(energy_wh*10), static_cast<int16_t>(avgEff.getAverage()*1000), static_cast<int16_t>(distance_km), static_cast<int16_t>(efficiency_kmkwh*1000));
+        energy_data_t data = energy_data_t(static_cast<uint16_t>(energy_wh*10), static_cast<uint16_t>(avgEff.getAverage()*1000), static_cast<uint16_t>(distance_m), static_cast<uint16_t>(efficiency_kmkwh*1000));
         return data;
     }
     float capacity_ah=0;
     float energy_wh = 0;
-    float distance_km = 0;
+    float distance_m = 0;
     float efficiency_kmkwh = 0;
     float efficiency_instantaneous = 0;
 private:
@@ -96,7 +98,7 @@ private:
     old_new_t current_amps;
     old_new_t velocity_ms;
     unsigned long time;
-    RollingAverage avgEff = RollingAverage(200);
+    RollingAverage avgEff = RollingAverage(100);
 };
 
 #endif

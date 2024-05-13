@@ -146,6 +146,8 @@ void loop()
         memcpy(fw_hash_msg.buf, &vcu_status_t, sizeof(vcu_status_t));
         WriteCANToInverter(fw_hash_msg);
 
+        sendStructOnCan(state_machine.get_lifetime_data(),ID_VCU_LIFETIME_DATA);
+
         // broadcast pedal thresholds information
         pedal_thresholds_msg.id = ID_VCU_PEDAL_THRESHOLD_SETTINGS;
         pedal_thresholds_msg.len = 7;

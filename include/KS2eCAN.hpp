@@ -37,7 +37,9 @@
 #define ID_DASH_FW_VERSION                                          0xEC
 #define ID_MC_CURRENT_LIMIT_COMMAND                                 0x202
 #define ID_BMS_SOC                                                  0x6B3 //made this real!
-
+#define ID_VCU_DISTANCE_TRACKER_MOTOR                               0xCE
+#define ID_VCU_DISTANCE_TRACKER_WHEELSPEED                          0xCF
+#define ID_VCU_LIFETIME_DATA                                        0xD0
 
 #define ID_BMS_CURRENT_LIMIT_INFO     0x6B1
 #define ID_BMS_PACK_VOLTAGE_INFO      0x6B2

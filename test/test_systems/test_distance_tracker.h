@@ -47,17 +47,28 @@ TEST(distance_tracker_tests,drive_onekm)
     // EXPECT_EQ(distance_tracker.get_data().efficiency_kmkwh,1);
     EXPECT_NEAR(distance_tracker.capacity_ah,10,0.001); 
     EXPECT_NEAR(distance_tracker.energy_wh,1000,0.5); // half a watt hour accuracy
-    EXPECT_NEAR(distance_tracker.distance_km,1000,1); // One meter accuracy
+    EXPECT_NEAR(distance_tracker.distance_m,1000,1); // One meter accuracy
     EXPECT_NEAR(distance_tracker.efficiency_kmkwh,1,0.001);
     EXPECT_NEAR(distance_tracker.efficiency_instantaneous,1,0.001);
-    printf("%fmeters %fah %fwh %fkm/kwh %fkm/kwh\n",distance_tracker.distance_km,distance_tracker.capacity_ah,distance_tracker.energy_wh,distance_tracker.efficiency_kmkwh,distance_tracker.efficiency_instantaneous);
+    printf("%fmeters %fah %fwh %fkm/kwh %fkm/kwh\n",distance_tracker.distance_m,distance_tracker.capacity_ah,distance_tracker.energy_wh,distance_tracker.efficiency_kmkwh,distance_tracker.efficiency_instantaneous);
+    energy_data_t joe = distance_tracker.get_data();
+    printf("%dmeters %dwh %dkm/kwh %dkm/kwh\n",joe.distance_m,joe.energy_wh,joe.eff_inst,joe.efficiency_kmkwh);
 }
 /*
     float capacity_ah;
     float energy_wh = 0;
     float distance_km = 0;
     float efficiency_kmkwh = 0;
-    float efficiency_instantaneous = 0;*/
+    float efficiency_instantaneous = 0;
+struct energy_data_t
+{
+    uint16_t energy_wh;
+    uint16_t eff_inst;
+    uint16_t distance_m;
+    uint16_t efficiency_kmkwh;
+    energy_data_t(uint16_t wh, uint16_t eff, uint16_t m, uint16_t kmkwh) : energy_wh(wh), eff_inst(eff), distance_m(m), efficiency_kmkwh(kmkwh) {}
+};
+    */
 
 
 

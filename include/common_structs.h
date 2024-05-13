@@ -15,4 +15,10 @@ typedef struct lc_countdown_t
     unsigned long release_countdown;
     const unsigned long release_delay = LAUNCHCONTROL_RELEASE_DELAY;
 } lc_countdown_t;
+
+typedef struct time_and_distance_tracker_t
+{
+    unsigned long vcu_lifetime_ontime;
+    unsigned long vcu_lifetime_distance;
+} time_and_distance_tracker_t;
 #endif
