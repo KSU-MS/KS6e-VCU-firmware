@@ -5,8 +5,8 @@ void StateMachine::init_state_machine(MCU_status &mcu_status)
 {
   EEPROM.get(ODOMETER_EEPROM_ADDR,_lifetime_distance);
   EEPROM.get(10,_lifetime_on_time);
-  Serial.printf("Loaded lifetime distance: %d meters (%d km)",_lifetime_distance);
-  Serial.printf("Loaded lifetime on_time: %d seconds (%d hours)",_lifetime_on_time);
+  Serial.printf("Loaded lifetime distance: %d meters (%f km)\n",_lifetime_distance,static_cast<float>(_lifetime_distance)/1000);
+  Serial.printf("Loaded lifetime on_time: %d seconds (%f hours)\n",_lifetime_on_time,static_cast<float>(_lifetime_on_time)/3600);
   set_state(mcu_status, MCU_STATE::STARTUP);
   pedals->init_pedal_handler();
   distance_tracker_motor.tick(millis());
@@ -533,7 +533,7 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
     unsigned long temporary_total_time = _lifetime_on_time + millis()/1000;
     EEPROM.put(10,temporary_total_time);
     time_and_distance_t.vcu_lifetime_ontime = temporary_total_time;
-    Serial.printf("Wrote total time: initial: %d millis: %d total: %d",_lifetime_on_time,millis()/1000,temporary_total_time);
+    Serial.printf("Wrote total time: initial: %d millis: %d total: %d\n",_lifetime_on_time,millis()/1000,temporary_total_time);
   }
 
   if (mcu_status.get_state() == MCU_STATE::READY_TO_DRIVE)

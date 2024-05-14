@@ -38,7 +38,7 @@ struct RollingAverage {
     }
 
     float getAverage() const {
-        printf("%d, %f",buffer.empty(),buffer.front());
+        // printf("%d, %f\n",buffer.empty(),buffer.front());
         return buffer.empty() ? 0.0 : sum / buffer.size();
     }
 };
