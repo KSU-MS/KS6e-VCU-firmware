@@ -18,6 +18,7 @@ enum torque_control_types_e
 struct tc_diag_data_t {
     unsigned long launchElapsedTime;
     int16_t outputTorqueCommand;
+    uint8_t joe = 0;
     uint8_t launchType;
     tc_diag_data_t(unsigned long time, int16_t outputTorque, uint8_t type)
         : launchElapsedTime(time), outputTorqueCommand(outputTorque),launchType(type) {}

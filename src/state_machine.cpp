@@ -180,7 +180,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   }
 
 // TODO test this
-  if (dash_->get_button_held_duration(3,500) && (pm100->getmcMotorRPM() <= 300))
+  if (dash_->get_button_held_duration(4,500) && (pm100->getmcMotorRPM() <= 300))
   {
     tcSystem->toggleController(millis());
     tcSystem->getController()->inittorque_controller(millis());
@@ -317,7 +317,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 #endif
     // Serial.println(dash_->get_button3());
     // if start button has been pressed and brake pedal is held down, transition to the next state
-    if (dash_->get_button4() && mcu_status.get_brake_pedal_active())
+    if (dash_->get_button3() && mcu_status.get_brake_pedal_active())
     {
       set_state(mcu_status, MCU_STATE::ENABLING_INVERTER);
     }

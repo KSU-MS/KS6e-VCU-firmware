@@ -22,7 +22,7 @@ struct energy_data_t
 
 struct RollingAverage {
     std::deque<float> buffer;
-    float sum;
+    float sum = 0;
     int maxSize;
 
     RollingAverage(int maxBufferSize) : maxSize(maxBufferSize) {}
@@ -30,7 +30,7 @@ struct RollingAverage {
     void addValue(float value) {
         buffer.push_back(value);
         sum = sum + value;
-        printf("%f",sum);
+        // printf("Sum: %f\n",sum);
         if (buffer.size() > maxSize) {
             sum -= buffer.front();
             buffer.pop_front();
@@ -70,6 +70,10 @@ public:
         // update efficiencies
         efficiency_kmkwh = distance_m/energy_wh;
         efficiency_instantaneous = (elapsed_time_seconds * velocity_ms.oldval) / (elapsed_time_seconds / 3600 * power_kw.oldval);
+        if (power_kw.oldval <= 0.01)
+        {
+            efficiency_instantaneous = 0;
+        }
         avgEff.addValue(efficiency_instantaneous);
         // set old vals to the previous new one
         power_kw.oldval = power_kw.newval;
