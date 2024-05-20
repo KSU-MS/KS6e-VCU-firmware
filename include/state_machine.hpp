@@ -10,6 +10,7 @@
 #include "dashboard.hpp"
 #include "parameters.hpp"
 #include "launch_system.h"
+#include "tc_system.h"
 #include <distance_tracker.h>
 
 #define ODOMETER_EEPROM_ADDR 0
@@ -23,6 +24,7 @@ private:
     Metro *debug_;
     PedalHandler *pedals;
     launchControlSystem *lcSystem;
+    torque_control_system *tcSystem;
     Metro *pedal_check_;
     distance_tracker_s distance_tracker_motor;
     distance_tracker_s distance_tracker_fl;
@@ -37,8 +39,8 @@ private:
     Metro can_10hz_timer = Metro(100,1);
     Metro _log_distance_timer_10s = Metro(10000,1);
 public:
-    StateMachine(Inverter *inv, Accumulator *acc, Metro *rs_tim, Dashboard *dash, Metro *debug, PedalHandler *pedals, launchControlSystem *lcSys,Metro *ped_t)
-        : pm100(inv), accumulator(acc), timer_ready_sound(rs_tim), dash_(dash), debug_(debug), pedals(pedals), lcSystem(lcSys),pedal_check_(ped_t){};
+    StateMachine(Inverter *inv, Accumulator *acc, Metro *rs_tim, Dashboard *dash, Metro *debug, PedalHandler *pedals, launchControlSystem *lcSys, torque_control_system *tcSys,Metro *ped_t)
+        : pm100(inv), accumulator(acc), timer_ready_sound(rs_tim), dash_(dash), debug_(debug), pedals(pedals), lcSystem(lcSys),tcSystem(tcSys),pedal_check_(ped_t){};
 
     void init_state_machine(MCU_status &mcu_status);
     void handle_state_machine(MCU_status &mcu_status);

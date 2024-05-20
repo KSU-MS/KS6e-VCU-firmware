@@ -81,6 +81,10 @@ int16_t launchControllerPID::calculateTorque(unsigned long elapsedTime, int16_t 
     // Calculate front and rear wheel speeds - take average of left and right
     float frontRpmAvg = ((wheelSpeedData.fl+wheelSpeedData.fr)/2);
     float rearRpmAvg =  ((wheelSpeedData.rl+wheelSpeedData.rr)/2);
+
+    printf("LC Front avg: %f Rear avg: %f\n",frontRpmAvg,rearRpmAvg);
+    printf("LC WHEELSPEEDS \nFL: %f FR: %f\nRL: %f RR: %f\n",wheelSpeedData.fl,wheelSpeedData.fr,wheelSpeedData.rl,wheelSpeedData.rr);
+
     // avoid zero division
     if (frontRpmAvg || rearRpmAvg <= 0.001)
     {

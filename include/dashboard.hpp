@@ -15,7 +15,7 @@ public:
     inline bool get_button1()  const {return (button_states&0x01);} 
     // Green button
     inline bool get_button2()  const {return (button_states&0x02);}
-    // Not connected
+    // Blue button
     inline bool get_button3()  const {return (button_states&0x04);} 
     // Ready to drive
     inline bool get_button4()  const {return (button_states&0x08);}

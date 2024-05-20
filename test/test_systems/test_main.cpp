@@ -2,7 +2,7 @@
 #include "test_launch_control.h"
 #include "test_mcu_state.h"
 #include "test_distance_tracker.h"
-
+#include "test_tc.h"
 int main(int argc, char **argv)
 {
 

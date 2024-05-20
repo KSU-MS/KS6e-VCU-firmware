@@ -58,14 +58,16 @@ Metro timer_can_update = Metro(1000, 1);
 // Wheel speed shit
 FreqMeasureMulti wsfl;
 FreqMeasureMulti wsfr;
-
+#define ENABLED_LC_TYPES {launchControlTypes_e::LC_DRIVERCONTROL,launchControlTypes_e::LC_LINEAR,launchControlTypes_e::LC_PID}
+#define ENABLED_TC_TYPES {torque_control_types_e::TC_DRIVERCONTROL,torque_control_types_e::TC_PID}
 // objects
 Dashboard dash;
 Inverter pm100(&timer_mc_kick_timer, &timer_inverter_enable, &timer_motor_controller_send, &timer_current_limit_send, &dash);
 Accumulator accum(&precharge_timeout,&ksu_can);
 PedalHandler pedals(&timer_debug_pedals_raw, &pedal_out_20hz, &pedal_out_1hz, &speedPID, &current_rpm, &set_rpm, &throttle_out, &wsfl, &wsfr);
-launchControlSystem launchSystem; // THIS WILL INCLUDE *ALL* LAUNCH MODES BY DEFAULT
-StateMachine state_machine(&pm100, &accum, &timer_ready_sound, &dash, &debug_tim, &pedals, &launchSystem, &pedal_check);
+launchControlSystem launchSystem(ENABLED_LC_TYPES); // THIS WILL INCLUDE *ALL* LAUNCH MODES BY DEFAULT
+torque_control_system tractionControlSystem(ENABLED_TC_TYPES);
+StateMachine state_machine(&pm100, &accum, &timer_ready_sound, &dash, &debug_tim, &pedals, &launchSystem, &tractionControlSystem, &pedal_check);
 MCU_status mcu_status = MCU_status();
 
 static CAN_message_t mcu_status_msg;

@@ -4,7 +4,9 @@
 #include <cstring>
 #include <common_structs.h>
 #include <AutoPID.h>
-
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
 enum class launchState
 {
     IDLE = 0,
@@ -107,6 +109,10 @@ public:
     }
     int16_t calculateTorque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData);
     launchControlTypes_e getType() {return launchControlTypes_e::LC_PID;}
+    void setLcPidGains(double kp, double ki, double kd)
+    {
+        pid.setGains(d_kp,d_ki,d_kd);
+    }
 };
 
 class launchControllerLinear : public launchController

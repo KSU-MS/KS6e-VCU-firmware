@@ -150,6 +150,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   if (_20hz_send)
   {
     sendStructOnCan(lcSystem->getController()->getDiagData(), ID_VCU_BASE_LAUNCH_CONTROLLER_INFO);
+    sendStructOnCan(tcSystem->getController()->getDiagData(), ID_VCU_TRACTION_CONTROLLER_INFO);
   }
 
   if (_100hz_send)
@@ -164,6 +165,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 
   }
 
+// DASH BUTTON INTERACTIONS
   // If dash button is on and has been on for 750ms
   // AND the motor is not spinning!!
   if ((!dash_->get_button(2)))
@@ -176,6 +178,14 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       send_state_msg(mcu_status);
     }
   }
+
+// TODO test this
+  if (dash_->get_button_held_duration(3,500) && (pm100->getmcMotorRPM() <= 300))
+  {
+    tcSystem->toggleController(millis());
+    tcSystem->getController()->inittorque_controller(millis());
+    sendStructOnCan(tcSystem->getController()->getDiagData(),ID_VCU_TRACTION_CONTROLLER_INFO);
+  }
   // If dash button held and LC not active
   if (!dash_->get_button(6))
   {
@@ -187,6 +197,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       sendStructOnCan(lcSystem->getController()->getDiagData(), ID_VCU_BASE_LAUNCH_CONTROLLER_INFO);
     }
   }
+  // End of (most) dash thingies
   // Do Torque Calcs here
   int16_t calculated_torque = 0;
   bool accel_is_plausible = false;
@@ -210,8 +221,10 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 #if USE_INVERTER
     motor_speed = pm100->getmcMotorRPM();
 #endif
+// TODO test TCs
     calculated_torque = pedals->calculate_torque(motor_speed, max_t_actual);
-
+    wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+    calculated_torque = tcSystem->getController()->calculate_torque(millis(),calculated_torque,wheelSpeedData);
     // REGEN
     if (mcu_status.get_brake_pedal_active() && dash_->get_button2() && calculated_torque < 5)
     {
@@ -531,7 +544,7 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
   if (_10s_timer_fired)
   {
     unsigned long temporary_total_time = _lifetime_on_time + millis()/1000;
-    EEPROM.put(10,temporary_total_time);
+    // EEPROM.put(10,temporary_total_time);
     time_and_distance_t.vcu_lifetime_ontime = temporary_total_time;
     Serial.printf("Wrote total time: initial: %d millis: %d total: %d\n",_lifetime_on_time,millis()/1000,temporary_total_time);
   }
@@ -544,7 +557,7 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
     if (_10s_timer_fired)
     {
       unsigned long temporary_total_distance = _lifetime_distance + distance_tracker_motor.get_data().distance_m;
-      EEPROM.put(ODOMETER_EEPROM_ADDR,temporary_total_distance);
+      // EEPROM.put(ODOMETER_EEPROM_ADDR,temporary_total_distance);
       time_and_distance_t.vcu_lifetime_distance = temporary_total_distance;
       Serial.printf("Wrote total distance: initial: %d millis: %d total: %d",_lifetime_distance,distance_tracker_motor.get_data().distance_m,temporary_total_distance);
     }
