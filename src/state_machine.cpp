@@ -540,7 +540,7 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
   Serial.printf("==Handled distance tracker!==\n");
 #endif
   bool _10s_timer_fired = _log_distance_timer_10s.check();
-
+  // TODO uncomment the eeprom writes
   if (_10s_timer_fired)
   {
     unsigned long temporary_total_time = _lifetime_on_time + millis()/1000;
