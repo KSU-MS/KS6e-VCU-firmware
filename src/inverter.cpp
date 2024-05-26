@@ -93,20 +93,29 @@ void Inverter::writeEnableNoTorque()
 
 /**
  * @brief Sends torque command to the inverter
- * 
+ *
  * @param torque the 0 - 3000 torque value (in Nm x 10)
  * @return true if sent succesfully
  * @return false if not
  */
 bool Inverter::command_torque(int16_t torque)
 {
+    // For now, this will not allow negative torque (regen)
+    if (torque > (TORQUE_4 * 10))
+    {
+        torque = TORQUE_4*10;
+    }
+    else if (torque < 0)
+    {
+        torque = 0;
+    }
     uint8_t angularVelocity1 = 0, angularVelocity2 = 0;
     bool emraxDirection = true; // true for forward, false for reverse
     bool inverterEnable = true; // go brrr
 
     uint8_t torqueCommand[] = {
         0, 0, angularVelocity1, angularVelocity2, emraxDirection, inverterEnable, 0, 0};
-    memcpy(&torqueCommand[0],&torque,sizeof(torque));
+    memcpy(&torqueCommand[0], &torque, sizeof(torque));
     // Send torque command if timer has fired
     if (timer_motor_controller_send->check())
     {
@@ -116,7 +125,7 @@ bool Inverter::command_torque(int16_t torque)
         memcpy(ctrlMsg.buf, torqueCommand, sizeof(ctrlMsg.buf));
         return (WriteCANToInverter(ctrlMsg));
     }
-    else //do nothing 
+    else // do nothing
     {
         return false;
     }
