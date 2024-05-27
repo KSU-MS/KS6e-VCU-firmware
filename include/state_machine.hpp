@@ -40,6 +40,8 @@ private:
     Metro can_20hz_timer = Metro(50,1);
     Metro can_10hz_timer = Metro(100,1);
     Metro _log_distance_timer_10s = Metro(10000,1);
+    Metro _log_distance_timer_60s = Metro(60000,1);
+
 public:
     StateMachine(Inverter *inv, Accumulator *acc, Metro *rs_tim, Dashboard *dash, Metro *debug, PedalHandler *pedals, launchControlSystem *lcSys, torque_control_system *tcSys,Metro *ped_t)
         : pm100(inv), accumulator(acc), timer_ready_sound(rs_tim), dash_(dash), debug_(debug), pedals(pedals), lcSystem(lcSys),tcSystem(tcSys),pedal_check_(ped_t){};

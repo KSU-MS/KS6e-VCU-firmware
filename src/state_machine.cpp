@@ -451,7 +451,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
         calculated_torque = 0; // Set torque to zero in IDLE
         // If button is held, APPS is floored (90%), brake is not active, and impl_occ is false
         // THEN: go to WAITING_TO_LAUNCH
-        if (dash_->get_button(6) && (pedals->getAppsTravel() > 0.9) && !(mcu_status.get_brake_pedal_active()) && !impl_occ)
+        if (dash_->get_button(6) && (pedals->getAppsTravel() > 0.8) && !(mcu_status.get_brake_pedal_active()) && !impl_occ)
         {
           lcSystem->getController()->setState(launchState::WAITING_TO_LAUNCH, millis());
           break;
@@ -468,7 +468,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
           break;
         }
         // If gas is still pinned and button has been released for 1000ms, start LAUNCHING
-        if ((pedals->getAppsTravel() > 0.9) && !dash_->get_button6() && dash_->get_button_released_duration(6, LAUNCHCONTROL_RELEASE_DELAY))
+        if ((pedals->getAppsTravel() > 0.8) && !dash_->get_button6() && dash_->get_button_released_duration(6, LAUNCHCONTROL_RELEASE_DELAY))
         {
           lcSystem->getController()->setState(launchState::LAUNCHING, millis());
           break;
@@ -541,8 +541,16 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
   Serial.printf("==Handled distance tracker!==\n");
 #endif
   bool _10s_timer_fired = _log_distance_timer_10s.check();
+  bool _60s_timer_fired = _log_distance_timer_60s.check();
   // TODO uncomment the eeprom writes
-  if (_10s_timer_fired)
+  if (_10s_timer_fired && (mcu_status.get_state() == MCU_STATE::READY_TO_DRIVE))
+  {
+    unsigned long temporary_total_time = _lifetime_on_time + millis()/1000;
+    EEPROM.put(ONTIME_EEPROM_ADDR,temporary_total_time);
+    time_and_distance_t.vcu_lifetime_ontime = temporary_total_time;
+    Serial.printf("Wrote total time: initial: %d millis: %d total: %d\n",_lifetime_on_time,millis()/1000,temporary_total_time);
+  }
+  else if (_60s_timer_fired)
   {
     unsigned long temporary_total_time = _lifetime_on_time + millis()/1000;
     EEPROM.put(ONTIME_EEPROM_ADDR,temporary_total_time);
@@ -562,6 +570,13 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
       time_and_distance_t.vcu_lifetime_distance = temporary_total_distance;
       Serial.printf("Wrote total distance: initial: %d millis: %d total: %d",_lifetime_distance,distance_tracker_motor.get_data().distance_m,temporary_total_distance);
     }
+  }
+  else if (_60s_timer_fired)
+  {
+    unsigned long temporary_total_distance = _lifetime_distance + distance_tracker_motor.get_data().distance_m;
+    EEPROM.put(ODOMETER_EEPROM_ADDR,temporary_total_distance);
+    time_and_distance_t.vcu_lifetime_distance = temporary_total_distance;
+    Serial.printf("Wrote total distance: initial: %d millis: %d total: %d",_lifetime_distance,distance_tracker_motor.get_data().distance_m,temporary_total_distance); 
   }
   else
   {
@@ -625,7 +640,7 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
 //           break;
 //         }
 //         // If gas is still pinned and button has been released for 1000ms, start LAUNCHING
-//         if ((pedals->getAppsTravel()> 0.9) && !dash_->get_button6() && dash_->get_button_released_duration(6,1000))
+//         if ((pedals->getAppsTravel()> 0.8) && !dash_->get_button6() && dash_->get_button_released_duration(6,1000))
 //         {
 //           lcSystem->getController()->setState(launchState::LAUNCHING,millis());
 //         }
