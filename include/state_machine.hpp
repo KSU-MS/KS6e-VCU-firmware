@@ -14,6 +14,8 @@
 #include <distance_tracker.h>
 
 #define ODOMETER_EEPROM_ADDR 0
+#define ONTIME_EEPROM_ADDR 10
+#define TORQUE_MODE_EEPROM_ADDR 20
 class StateMachine
 {
 private:

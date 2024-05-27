@@ -308,6 +308,10 @@ void PedalHandler::update_wheelspeed(unsigned long current_time_millis, wheelspe
         if (ws->count > 1)
         {
             float testRpm = freq->countToFrequency(ws->sum / ws->count) * 60 / WHEELSPEED_TOOTH_COUNT;
+            if (testRpm > 6000)
+            {
+                testRpm = ws->current_rpm;
+            }
             ws->current_rpm = testRpm;
 
             /*if ( testRpm - prev_rpm < 1)

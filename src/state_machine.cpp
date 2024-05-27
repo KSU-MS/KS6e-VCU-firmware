@@ -4,7 +4,7 @@
 void StateMachine::init_state_machine(MCU_status &mcu_status)
 {
   EEPROM.get(ODOMETER_EEPROM_ADDR,_lifetime_distance);
-  EEPROM.get(10,_lifetime_on_time);
+  EEPROM.get(ONTIME_EEPROM_ADDR,_lifetime_on_time);
   Serial.printf("Loaded lifetime distance: %d meters (%f km)\n",_lifetime_distance,static_cast<float>(_lifetime_distance)/1000);
   Serial.printf("Loaded lifetime on_time: %d seconds (%f hours)\n",_lifetime_on_time,static_cast<float>(_lifetime_on_time)/3600);
   set_state(mcu_status, MCU_STATE::STARTUP);
@@ -175,6 +175,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       dash_->set_button_last_pressed_time(0, 6);
       mcu_status.toggle_max_torque(mcu_status.get_torque_mode());
       mcu_status.set_max_torque(torque_mode_list[mcu_status.get_torque_mode() - 1]);
+      EEPROM.put(TORQUE_MODE_EEPROM_ADDR,mcu_status.get_torque_mode());
       send_state_msg(mcu_status);
     }
   }
@@ -544,7 +545,7 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
   if (_10s_timer_fired)
   {
     unsigned long temporary_total_time = _lifetime_on_time + millis()/1000;
-    // EEPROM.put(10,temporary_total_time);
+    EEPROM.put(ONTIME_EEPROM_ADDR,temporary_total_time);
     time_and_distance_t.vcu_lifetime_ontime = temporary_total_time;
     Serial.printf("Wrote total time: initial: %d millis: %d total: %d\n",_lifetime_on_time,millis()/1000,temporary_total_time);
   }
@@ -557,7 +558,7 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
     if (_10s_timer_fired)
     {
       unsigned long temporary_total_distance = _lifetime_distance + distance_tracker_motor.get_data().distance_m;
-      // EEPROM.put(ODOMETER_EEPROM_ADDR,temporary_total_distance);
+      EEPROM.put(ODOMETER_EEPROM_ADDR,temporary_total_distance);
       time_and_distance_t.vcu_lifetime_distance = temporary_total_distance;
       Serial.printf("Wrote total distance: initial: %d millis: %d total: %d",_lifetime_distance,distance_tracker_motor.get_data().distance_m,temporary_total_distance);
     }

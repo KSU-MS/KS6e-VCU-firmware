@@ -121,8 +121,15 @@ void setup()
     memcpy(fw_hash_msg.buf, &vcu_status_t, sizeof(vcu_status_t));
 
     mcu_status.set_inverter_powered(true); // note VCU does not control inverter power on rev3
-    mcu_status.set_torque_mode(1);         // TODO torque modes should be an enum
-    mcu_status.set_max_torque(TORQUE_1);   // TORQUE_1=60nm, 2=120nm, 3=180nm, 4=240nm
+    uint8_t last_mode = 1;
+    EEPROM.get(TORQUE_MODE_EEPROM_ADDR,last_mode);
+    if (last_mode > 4 || last_mode < 1)
+    {
+        last_mode = 3;
+    }
+    Serial.printf("Last torque mode (from EEPROM: %d)\n",last_mode);
+    mcu_status.set_torque_mode(last_mode);         // TODO torque modes should be an enum
+    mcu_status.set_max_torque(torque_mode_list[last_mode-1]);   // TORQUE_1=60nm, 2=120nm, 3=180nm, 4=240nm
     state_machine.init_state_machine(mcu_status);
 }
 
