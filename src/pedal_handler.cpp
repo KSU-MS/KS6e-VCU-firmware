@@ -22,6 +22,10 @@ void PedalHandler::run_pedals()
     this->bse1.sensor_run();
 }
 
+float PedalHandler::getAppsTravel()
+{
+    return (this->apps1.getTravelRatio() + this->apps2.getTravelRatio())/2;
+}
 /**
  * @brief calculate torque to be commanded based on accel pedal position
  * 
@@ -44,9 +48,9 @@ int16_t PedalHandler::calculate_torque(int16_t &motor_speed, int &max_torque)
     {
         torque2 = max_torque;
     }
-    // Use average of the two APPS torque results to calculate the torque request
 
-    calculated_torque = (torque1 + torque2) / 2; // TODO un-cheese this
+    // Use average of the two APPS torque results to calculate the torque request
+    calculated_torque = (torque1 + torque2) / 2;
 
     if (calculated_torque > max_torque)
     {
@@ -74,8 +78,7 @@ int16_t PedalHandler::calculate_regen(int16_t &motor_speed, int16_t max_regen_to
     const int16_t regen_torque_maximum = REGEN_NM * -10;
     calculated_regen_torque = this->bse1.getTravelRatio() * regen_torque_maximum;
     // Smooth regen torque so it doesnt yeet driveline
-    // TODO find out what this limits the rate of change to
-    smoothed_regen_torque = 0.8 * smoothed_regen_torque + (1-0.8) * calculated_regen_torque;
+    smoothed_regen_torque = FILTERING_ALPHA_1HZ * smoothed_regen_torque + (1-FILTERING_ALPHA_1HZ) * calculated_regen_torque;
     #if DEBUG
     Serial.printf("Calculated regen: %d smoothed regen: %d",calculated_regen_torque,smoothed_regen_torque);
     #endif
@@ -134,8 +137,9 @@ bool PedalHandler::read_pedal_values()
  * @brief send pedal readings over CAN, with timers built in to function
  * 
  */
-void PedalHandler::send_readings()
+bool PedalHandler::send_readings()
 {
+    bool sent = false;
     if (pedal_out_20hz->check())
     {
         // Send Main Control Unit pedal reading message @ 20hz
@@ -160,9 +164,9 @@ void PedalHandler::send_readings()
         tx_msg3.len = sizeof(readings);
         memcpy(tx_msg3.buf,&readings,sizeof(readings));
 
-        WriteCANToInverter(tx_msg);
-        WriteCANToInverter(tx_msg2);
-        WriteCANToInverter(tx_msg3);
+        sent = WriteCANToInverter(tx_msg);
+        sent = WriteCANToInverter(tx_msg2);
+        sent = WriteCANToInverter(tx_msg3);
     }
     if (pedal_out_1hz->check())
     {
@@ -183,6 +187,7 @@ void PedalHandler::send_readings()
         WriteCANToInverter(tx_msg3);
         WriteCANToInverter(tx_msg4);
     }
+    return sent;
 }
 
 /**
@@ -279,8 +284,10 @@ void PedalHandler::verify_pedals(
 }
 
 // idgaf anything below (all wheel speed)
-double PedalHandler::get_wsfr() { return wsfr_t.current_rpm; }
-double PedalHandler::get_wsfl() { return wsfl_t.current_rpm; }
+//Get front right WS reading
+float PedalHandler::get_wsfr() { return wsfr_t.current_rpm; }
+//Get front left WS reading
+float PedalHandler::get_wsfl() { return wsfl_t.current_rpm; }
 /**
  * @brief update wheel speed readings
  * 
@@ -301,6 +308,10 @@ void PedalHandler::update_wheelspeed(unsigned long current_time_millis, wheelspe
         if (ws->count > 1)
         {
             float testRpm = freq->countToFrequency(ws->sum / ws->count) * 60 / WHEELSPEED_TOOTH_COUNT;
+            if (testRpm > 6000)
+            {
+                testRpm = ws->current_rpm;
+            }
             ws->current_rpm = testRpm;
 
             /*if ( testRpm - prev_rpm < 1)

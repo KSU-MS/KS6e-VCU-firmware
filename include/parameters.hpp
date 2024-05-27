@@ -1,6 +1,9 @@
 #ifndef PARAMETERS_HPP
 #define PARAMETERS_HPP
-
+#include <stdint.h>
+#ifndef PI
+#define PI 3.1415926535897932384626433832795
+#endif
 #define DEBUG false
 
 
@@ -22,10 +25,11 @@
 #define PID_MODE false //enable cruise control
 #define PID_TC_MODE false //enable traction control
 #define EXP_TORQUE_CURVE false //set to TRUE for kustom pedal curve
+const unsigned long LAUNCHCONTROL_RELEASE_DELAY = 1500;
 #define WHEELSPEED_TOOTH_COUNT 18 // Wheel Speed sensor tooth coutn
 const float WHEEL_CIRCUMFERENCE  = 0.229*PI*2;
 const float FRONT_SPROCKET_TEETH = 10;
-const float REAR_SPROCKET_TEETH = 30;
+const float REAR_SPROCKET_TEETH = 29;
 const float FINAL_DRIVE = FRONT_SPROCKET_TEETH/REAR_SPROCKET_TEETH; 
 #define RPM_TIMEOUT 1000 // Timeout for wheel speed RPM to reset to 0
 #define MIN_BRAKE_PEDAL 400           // ~0.5v, set on 2-29-2024
@@ -60,11 +64,13 @@ const int MIN_HV_VOLTAGE = 600; // apparently this is divided by ten? yes maybe,
 const int  DISCHARGE_POWER_LIM  = 75000;
 const int CHARGE_POWER_LIM = 9000;
 
-// Torque Calculation Defines
-#define ALPHA 0.99 // This is the coefficient for exponential smoothing
 const float cutoff_10hz = 10; // Hz
 // Calculate filtering alpha value for the cutoff frequency  
 const double FILTERING_ALPHA_10HZ = 2 * 3.14 * cutoff_10hz / (1 + 2 * 3.14 * cutoff_10hz);
+
+const float cutoff_1hz = 1; // Hz
+// Calculate filtering alpha value for the cutoff frequency  
+const double FILTERING_ALPHA_1HZ = 2 * 3.14 * cutoff_1hz / (1 + 2 * 3.14 * cutoff_1hz);
 
 // Note that the variable max_torque is uin8_t
 // So it will overflow past a value of 255
