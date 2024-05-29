@@ -12,7 +12,7 @@ enum torque_control_types_e
 {
     TC_DRIVERCONTROL = 0, // No firmware limiting, driver throttle directly
     TC_PID = 1, // PID slip control
-    TC_TimeSlip = 2, // Time slip control
+    TC_SlipTime = 2, // Time slip control
     TC_NUM_CONTROLLERS
 };
 
@@ -98,19 +98,25 @@ public:
     }
 };
 
-class torque_controllerTimeSlip : public torque_controller
+class torque_controllerSlipTime : public torque_controller
 {
 private:
-    const double tireSlipHigh = 0.5;
-    double d_kp = 1.0;
-    const double output_min = -1.0; // Minimum output of the PID controller
-    const double output_max = 0; // Max output of the PID controller
-    double input, setpoint, output;
-    unsigned long _lastStep = 0; // Last time step???
-    unsigned long _dT = 0; // Time since last update
-    const uint8_t TC_PID_TIMESTEP = 5; //ms
+    const double tireSlipHigh = 0.05; // Slip threshold
+    unsigned long _lastSlip = 0; // Time slip began
+    unsigned long slip_dT = 0; // Time delta since slip first began
+    bool slipActive = false; // Flag to indicate if slip is active
+    static const int numPoints = 5; // Number of data points
+    double xSlipTime[numPoints] = {10, 20, 30, 40, 50}; // x-coordinates of data points
+    double yTorqueRTD[numPoints] = {0.0, 0.5, 0.6, 0.2, 0.0}; // y-coordinates of data points
+    double slopes[numPoints]; // Slopes at each point for interpolation
+    double outputTorqueRTD = 0; // Torque Retard due to controller
+    double slipTime = 0;
+
+
 public:
     int16_t calculate_torque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData);
-    torque_control_types_e getType() {return torque_control_types_e::TC_TimeSlip;}
+    torque_control_types_e getType() {return torque_control_types_e::TC_SlipTime;}
+
+   
 };
 #endif

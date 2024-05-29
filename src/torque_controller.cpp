@@ -55,8 +55,8 @@ int16_t torque_controllerPID::calculate_torque(unsigned long elapsedTime, int16_
     return outputTorqueCommand;  
 }
 
-// TimeSlip based torque reduction
-int16_t torque_controllerTimeSlip::calculate_torque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData)
+// SlipTime based torque reduction
+int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData)
 {
     driverTorqueRequest = maxTorque;
     float torqueOut = 0;
@@ -80,13 +80,37 @@ int16_t torque_controllerTimeSlip::calculate_torque(unsigned long elapsedTime, i
         slipRatio = (rearRpmAvg / frontRpmAvg) - 1;
     }
  
-    //Calculate time since last update
-    _dT = elapsedTime - _lastStep;   //calculate time since last update
+    // Set the "state" of the controller to capture the time the slip ratio crossed the threshold (which is used to calculate slip * time)
+    if (slipRatio > tireSlipHigh && slipActive == false) { // If the slip ratio crosses the threshold, set the last slip time to now and set the slip active flag to true
+        _lastSlip = elapsedTime;
+        slipActive = true;
+    } else if (slipRatio > tireSlipHigh && slipActive == true) { // If slip ratio above threshold and slip active, calculate time since beginning to slip and slip * time
+        slip_dT = elapsedTime - _lastSlip; // Calculate time since slip started
+        slipTime = (slipRatio * slip_dT); // Calculate slip * time
+    } else {
+        slipActive = false; // Catch all, should disable whenever slip ratio falls below threshold and slip active was true
+    }
+   
 
+    // Check bounds
+    if (slipTime < xSlipTime[0] || slipTime > xSlipTime[numPoints - 1]) {
+        Serial.println("slipTime out of bounds");
+        outputTorqueRTD = 0;
+    }
 
-
+    // Find the interval where 'x' belongs
+    for (int i = 0; i < numPoints - 1; i++) {
+        if (slipTime <= xSlipTime[i + 1]) {
+            double slope = (yTorqueRTD[i + 1] - yTorqueRTD[i]) / (xSlipTime[i + 1] - xSlipTime[i]); // Calculate slope for linear interpolation
+            outputTorqueRTD = yTorqueRTD[i] + slope * (slipTime - xSlipTime[i]); // Calculate output based on linear interpolation
+        }
+    }
+    // If slipTime lands on the last point, return the last value
+    if (slipTime = xSlipTime[numPoints - 1]) {
+        outputTorqueRTD = yTorqueRTD[numPoints - 1];
+    }
     
-    torqueOut = maxTorque + (output * maxTorque);
+    torqueOut = outputTorqueRTD;
     lcTorqueRequest = static_cast<int16_t>(torqueOut); // Pre clamping
     if (torqueOut > maxTorque)
     {
@@ -97,10 +121,7 @@ int16_t torque_controllerTimeSlip::calculate_torque(unsigned long elapsedTime, i
         torqueOut = 0;
     }
 
-
-
+    
     outputTorqueCommand = static_cast<int16_t>(torqueOut); // Post-clamping
-
-    _lastStep = elapsedTime; // Set current time as last time for the future calculation
     return outputTorqueCommand;  
 }
