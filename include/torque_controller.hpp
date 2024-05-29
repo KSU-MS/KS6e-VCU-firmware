@@ -12,6 +12,7 @@ enum torque_control_types_e
 {
     TC_DRIVERCONTROL = 0, // No firmware limiting, driver throttle directly
     TC_PID = 1, // PID slip control
+    TC_TimeSlip = 2, // Time slip control
     TC_NUM_CONTROLLERS
 };
 
@@ -95,5 +96,21 @@ public:
     {
         pid.setGains(d_kp,d_ki,d_kd);
     }
+};
+
+class torque_controllerTimeSlip : public torque_controller
+{
+private:
+    const double tireSlipHigh = 0.5;
+    double d_kp = 1.0;
+    const double output_min = -1.0; // Minimum output of the PID controller
+    const double output_max = 0; // Max output of the PID controller
+    double input, setpoint, output;
+    unsigned long _lastStep = 0; // Last time step???
+    unsigned long _dT = 0; // Time since last update
+    const uint8_t TC_PID_TIMESTEP = 5; //ms
+public:
+    int16_t calculate_torque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData);
+    torque_control_types_e getType() {return torque_control_types_e::TC_TimeSlip;}
 };
 #endif

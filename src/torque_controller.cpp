@@ -54,3 +54,53 @@ int16_t torque_controllerPID::calculate_torque(unsigned long elapsedTime, int16_
     outputTorqueCommand = static_cast<int16_t>(torqueOut); // Post-clamping
     return outputTorqueCommand;  
 }
+
+// TimeSlip based torque reduction
+int16_t torque_controllerTimeSlip::calculate_torque(unsigned long elapsedTime, int16_t maxTorque, wheelSpeeds_s &wheelSpeedData)
+{
+    driverTorqueRequest = maxTorque;
+    float torqueOut = 0;
+    float slipRatio = 0;
+
+    // Calculate front and rear wheel speeds - take average of left and right
+    float frontRpmAvg = ((wheelSpeedData.fl+wheelSpeedData.fr)/2);
+    float rearRpmAvg =  ((wheelSpeedData.rl+wheelSpeedData.rr)/2);
+    printf("TC Front avg: %f Rear avg: %f\n",frontRpmAvg,rearRpmAvg);
+    printf("TC WHEELSPEEDS \nFL: %f FR: %f\nRL: %f RR: %f\n",wheelSpeedData.fl,wheelSpeedData.fr,wheelSpeedData.rl,wheelSpeedData.rr);
+    // avoid zero division
+    if (frontRpmAvg || rearRpmAvg <= 0.001)
+    {
+        slipRatio = 0; // treat it like 0 slip (maybe this is bad)
+    }
+    else
+    {
+        // Slip = (rear / front) - 1
+        // ie. 1000rpm/900rpm = 1.111..
+        // 1.111 - 1 = 0.111 slip ratio
+        slipRatio = (rearRpmAvg / frontRpmAvg) - 1;
+    }
+ 
+    //Calculate time since last update
+    _dT = elapsedTime - _lastStep;   //calculate time since last update
+
+
+
+    
+    torqueOut = maxTorque + (output * maxTorque);
+    lcTorqueRequest = static_cast<int16_t>(torqueOut); // Pre clamping
+    if (torqueOut > maxTorque)
+    {
+        torqueOut = maxTorque;
+    }
+    if (torqueOut < 0)
+    {
+        torqueOut = 0;
+    }
+
+
+
+    outputTorqueCommand = static_cast<int16_t>(torqueOut); // Post-clamping
+
+    _lastStep = elapsedTime; // Set current time as last time for the future calculation
+    return outputTorqueCommand;  
+}
