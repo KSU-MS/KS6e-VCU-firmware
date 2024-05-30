@@ -67,7 +67,7 @@ Accumulator accum(&precharge_timeout,&ksu_can);
 PedalHandler pedals(&timer_debug_pedals_raw, &pedal_out_20hz, &pedal_out_1hz, &speedPID, &current_rpm, &set_rpm, &throttle_out, &wsfl, &wsfr);
 launchControlSystem launchSystem(ENABLED_LC_TYPES); // THIS WILL INCLUDE *ALL* LAUNCH MODES BY DEFAULT
 torque_control_system tractionControlSystem(ENABLED_TC_TYPES);
-StateMachine state_machine(&pm100, &accum, &timer_ready_sound, &dash, &debug_tim, &pedals, &launchSystem, &tractionControlSystem, &pedal_check);
+StateMachine state_machine(&pm100, &accum, &timer_ready_sound, &dash, &debug_tim, &pedals, &launchSystem, &tractionControlSystem, &pedal_check, &ksu_can);
 MCU_status mcu_status = MCU_status();
 
 static CAN_message_t mcu_status_msg;

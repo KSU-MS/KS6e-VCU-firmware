@@ -3,14 +3,15 @@
 //  initializes the mcu status and pedal handler
 void StateMachine::init_state_machine(MCU_status &mcu_status)
 {
-  EEPROM.get(ODOMETER_EEPROM_ADDR,_lifetime_distance);
-  EEPROM.get(ONTIME_EEPROM_ADDR,_lifetime_on_time);
-  Serial.printf("Loaded lifetime distance: %d meters (%f km)\n",_lifetime_distance,static_cast<float>(_lifetime_distance)/1000);
-  Serial.printf("Loaded lifetime on_time: %d seconds (%f hours)\n",_lifetime_on_time,static_cast<float>(_lifetime_on_time)/3600);
+  EEPROM.get(ODOMETER_EEPROM_ADDR, _lifetime_distance);
+  EEPROM.get(ONTIME_EEPROM_ADDR, _lifetime_on_time);
+  Serial.printf("Loaded lifetime distance: %d meters (%f km)\n", _lifetime_distance, static_cast<float>(_lifetime_distance) / 1000);
+  Serial.printf("Loaded lifetime on_time: %d seconds (%f hours)\n", _lifetime_on_time, static_cast<float>(_lifetime_on_time) / 3600);
   set_state(mcu_status, MCU_STATE::STARTUP);
   pedals->init_pedal_handler();
   distance_tracker_motor.tick(millis());
   distance_tracker_fl.tick(millis());
+  distance_tracker_vectornav.tick(millis());
 }
 
 // Send a state message on every state transition so we don't miss any
@@ -136,6 +137,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
   pm100->updateInverterCAN();
 #endif
   accumulator->updateAccumulatorCAN();
+  update_daq_can();
   // dash_->updateDashCAN(); Reading inverter CAN and "dash can" at the same time
   // causes a lot of delay. DOn't do it
 
@@ -160,12 +162,18 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 
   if (_10hz_send)
   {
-    sendStructOnCan(distance_tracker_fl.get_data(),ID_VCU_DISTANCE_TRACKER_WHEELSPEED);
-    sendStructOnCan(distance_tracker_motor.get_data(),ID_VCU_DISTANCE_TRACKER_MOTOR);
-
+    sendStructOnCan(distance_tracker_fl.get_data(), ID_VCU_DISTANCE_TRACKER_WHEELSPEED);
+    sendStructOnCan(distance_tracker_motor.get_data(), ID_VCU_DISTANCE_TRACKER_MOTOR);
+    sendStructOnCan(distance_tracker_vectornav.get_data(), ID_VCU_DISTANCE_TRACKER_VN);
+    uint16_t joe[] = {
+      static_cast<uint16_t>(distance_tracker_fl.capacity_ah*100),
+      static_cast<uint16_t>(distance_tracker_motor.capacity_ah*100),
+      static_cast<uint16_t>(distance_tracker_vectornav.capacity_ah*100)
+    };
+    sendStructOnCan(joe,ID_VCU_COULOMB_COUNT);
   }
 
-// DASH BUTTON INTERACTIONS
+  // DASH BUTTON INTERACTIONS
   // If dash button is on and has been on for 750ms
   // AND the motor is not spinning!!
   if ((!dash_->get_button(2)))
@@ -175,17 +183,17 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       dash_->set_button_last_pressed_time(0, 6);
       mcu_status.toggle_max_torque(mcu_status.get_torque_mode());
       mcu_status.set_max_torque(torque_mode_list[mcu_status.get_torque_mode() - 1]);
-      EEPROM.put(TORQUE_MODE_EEPROM_ADDR,mcu_status.get_torque_mode());
+      EEPROM.put(TORQUE_MODE_EEPROM_ADDR, mcu_status.get_torque_mode());
       send_state_msg(mcu_status);
     }
   }
 
-// TODO test this
-  if (dash_->get_button_held_duration(4,500) && (pm100->getmcMotorRPM() <= 300))
+  // TODO test this
+  if (dash_->get_button_held_duration(4, 500) && (pm100->getmcMotorRPM() <= 300))
   {
     tcSystem->toggleController(millis());
     tcSystem->getController()->inittorque_controller(millis());
-    sendStructOnCan(tcSystem->getController()->getDiagData(),ID_VCU_TRACTION_CONTROLLER_INFO);
+    sendStructOnCan(tcSystem->getController()->getDiagData(), ID_VCU_TRACTION_CONTROLLER_INFO);
   }
   // If dash button held and LC not active
   if (!dash_->get_button(6))
@@ -222,10 +230,19 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 #if USE_INVERTER
     motor_speed = pm100->getmcMotorRPM();
 #endif
-// TODO test TCs
+    // TODO test TCs
     calculated_torque = pedals->calculate_torque(motor_speed, max_t_actual);
-    wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
-    calculated_torque = tcSystem->getController()->calculate_torque(millis(),calculated_torque,wheelSpeedData);
+    if ((millis() - vectornav_data.last_update_time) <= 100)
+    {
+      float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
+      wheelSpeeds_s wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+      calculated_torque = tcSystem->getController()->calculate_torque(millis(), calculated_torque, wheelSpeedData);
+    }
+    else
+    {
+      wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+      calculated_torque = tcSystem->getController()->calculate_torque(millis(), calculated_torque, wheelSpeedData);
+    }
     // REGEN
     if (mcu_status.get_brake_pedal_active() && dash_->get_button2() && calculated_torque < 5)
     {
@@ -451,7 +468,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
         calculated_torque = 0; // Set torque to zero in IDLE
         // If button is held, APPS is floored (90%), brake is not active, and impl_occ is false
         // THEN: go to WAITING_TO_LAUNCH
-        if (dash_->get_button(6) && (pedals->getAppsTravel() > 0.9) && !(mcu_status.get_brake_pedal_active()) && !impl_occ)
+        if (dash_->get_button(6) && (pedals->getAppsTravel() > 0.8) && !(mcu_status.get_brake_pedal_active()) && !impl_occ)
         {
           lcSystem->getController()->setState(launchState::WAITING_TO_LAUNCH, millis());
           break;
@@ -468,7 +485,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
           break;
         }
         // If gas is still pinned and button has been released for 1000ms, start LAUNCHING
-        if ((pedals->getAppsTravel() > 0.9) && !dash_->get_button6() && dash_->get_button_released_duration(6, LAUNCHCONTROL_RELEASE_DELAY))
+        if ((pedals->getAppsTravel() > 0.8) && !dash_->get_button6() && dash_->get_button_released_duration(6, LAUNCHCONTROL_RELEASE_DELAY))
         {
           lcSystem->getController()->setState(launchState::LAUNCHING, millis());
           break;
@@ -493,11 +510,19 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
           lcSystem->getController()->setState(launchState::FINISHED, millis());
           break;
         }
-        wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
-        lcSystem->getController()->run(millis(), calculated_torque, wheelSpeedData);
+        if ((millis() - vectornav_data.last_update_time) <= 100)
+        {
+          float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
+          wheelSpeeds_s wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+          lcSystem->getController()->run(millis(), calculated_torque, wheelSpeedData);
+        }
+        else
+        {
+          wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+          lcSystem->getController()->run(millis(), calculated_torque, wheelSpeedData);
+        }
         calculated_torque = lcSystem->getController()->getTorqueOutput();
         // Yeet data fast when running
-        // GO FASTER THAN 20HZ TODO
         if (_100hz_send)
         {
           (lcSystem->getController()->getDiagData(), ID_VCU_BASE_LAUNCH_CONTROLLER_INFO);
@@ -541,34 +566,78 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
   Serial.printf("==Handled distance tracker!==\n");
 #endif
   bool _10s_timer_fired = _log_distance_timer_10s.check();
+  bool _60s_timer_fired = _log_distance_timer_60s.check();
   // TODO uncomment the eeprom writes
-  if (_10s_timer_fired)
+  if (_10s_timer_fired && (mcu_status.get_state() == MCU_STATE::READY_TO_DRIVE))
   {
-    unsigned long temporary_total_time = _lifetime_on_time + millis()/1000;
-    EEPROM.put(ONTIME_EEPROM_ADDR,temporary_total_time);
+    unsigned long temporary_total_time = _lifetime_on_time + millis() / 1000;
+    EEPROM.put(ONTIME_EEPROM_ADDR, temporary_total_time);
     time_and_distance_t.vcu_lifetime_ontime = temporary_total_time;
-    Serial.printf("Wrote total time: initial: %d millis: %d total: %d\n",_lifetime_on_time,millis()/1000,temporary_total_time);
+    Serial.printf("Wrote total time: initial: %d millis: %d total: %d\n", _lifetime_on_time, millis() / 1000, temporary_total_time);
+  }
+  else if (_60s_timer_fired)
+  {
+    unsigned long temporary_total_time = _lifetime_on_time + millis() / 1000;
+    EEPROM.put(ONTIME_EEPROM_ADDR, temporary_total_time);
+    time_and_distance_t.vcu_lifetime_ontime = temporary_total_time;
+    Serial.printf("Wrote total time: initial: %d millis: %d total: %d\n", _lifetime_on_time, millis() / 1000, temporary_total_time);
   }
 
   if (mcu_status.get_state() == MCU_STATE::READY_TO_DRIVE)
   {
     distance_tracker_fl.update(accumulator->get_acc_current(), accumulator->get_acc_voltage(), pedals->get_wsfl(), WHEEL_CIRCUMFERENCE, millis());
     distance_tracker_motor.update(accumulator->get_acc_current(), accumulator->get_acc_voltage(), pm100->getmcMotorRPM() * FINAL_DRIVE, WHEEL_CIRCUMFERENCE, millis());
+    distance_tracker_vectornav.update(accumulator->get_acc_current(), accumulator->get_acc_voltage(), vectornav_data.velocity_magnitude, millis());
+
     mcu_status.set_distance_travelled(distance_tracker_motor.get_data().distance_m);
     if (_10s_timer_fired)
     {
       unsigned long temporary_total_distance = _lifetime_distance + distance_tracker_motor.get_data().distance_m;
-      EEPROM.put(ODOMETER_EEPROM_ADDR,temporary_total_distance);
+      EEPROM.put(ODOMETER_EEPROM_ADDR, temporary_total_distance);
       time_and_distance_t.vcu_lifetime_distance = temporary_total_distance;
-      Serial.printf("Wrote total distance: initial: %d millis: %d total: %d",_lifetime_distance,distance_tracker_motor.get_data().distance_m,temporary_total_distance);
+      Serial.printf("Wrote total distance: initial: %d millis: %d total: %d", _lifetime_distance, distance_tracker_motor.get_data().distance_m, temporary_total_distance);
     }
+  }
+  else if (_60s_timer_fired)
+  {
+    unsigned long temporary_total_distance = _lifetime_distance + distance_tracker_motor.get_data().distance_m;
+    EEPROM.put(ODOMETER_EEPROM_ADDR, temporary_total_distance);
+    time_and_distance_t.vcu_lifetime_distance = temporary_total_distance;
+    Serial.printf("Wrote total distance: initial: %d millis: %d total: %d", _lifetime_distance, distance_tracker_motor.get_data().distance_m, temporary_total_distance);
   }
   else
   {
     distance_tracker_fl.tick(millis());
     distance_tracker_motor.tick(millis());
   }
+}
 
+void StateMachine::update_daq_can()
+{
+  CAN_message_t rxMsg;
+  if (ReadDaqCAN(rxMsg))
+  {
+    unpack_flexcan_message(ksu_can, rxMsg);
+    switch (rxMsg.id)
+    {
+    case CAN_ID_EVELOGGER_VECTORNAV_ACCELERATION:
+    {
+      decode_can_0x1f9_evelogger_vectornav_accelX(ksu_can, &vectornav_data.accel_x);
+      decode_can_0x1f9_evelogger_vectornav_accelY(ksu_can, &vectornav_data.accel_y);
+      decode_can_0x1f9_evelogger_vectornav_accelZ(ksu_can, &vectornav_data.accel_z);
+      break;
+    }
+    case CAN_ID_EVELOGGER_VECTORNAV_VELOCITY:
+    {
+      decode_can_0x1f8_evelogger_vectornav_v_e(ksu_can, &vectornav_data.velocity_east);
+      decode_can_0x1f8_evelogger_vectornav_v_d(ksu_can, &vectornav_data.velocity_down);
+      decode_can_0x1f8_evelogger_vectornav_v_n(ksu_can, &vectornav_data.velocity_north);
+      vectornav_data.velocity_magnitude = sqrt(pow(vectornav_data.velocity_east, 2.0) + pow(vectornav_data.velocity_north, 2.0));
+      vectornav_data.last_update_time = millis();
+      break;
+    }
+    }
+  }
 }
 
 // void StateMachine::joe_mock_lc(MCU_status* mcu_status, int torq, bool implaus)
@@ -625,7 +694,7 @@ void StateMachine::handle_distance_trackers(MCU_status &mcu_status)
 //           break;
 //         }
 //         // If gas is still pinned and button has been released for 1000ms, start LAUNCHING
-//         if ((pedals->getAppsTravel()> 0.9) && !dash_->get_button6() && dash_->get_button_released_duration(6,1000))
+//         if ((pedals->getAppsTravel()> 0.8) && !dash_->get_button6() && dash_->get_button_released_duration(6,1000))
 //         {
 //           lcSystem->getController()->setState(launchState::LAUNCHING,millis());
 //         }
