@@ -28,8 +28,11 @@ private:
     launchControlSystem *lcSystem;
     torque_control_system *tcSystem;
     Metro *pedal_check_;
+    can_obj_ksu_ev_can_h_t *ksu_can;
     distance_tracker_s distance_tracker_motor;
     distance_tracker_s distance_tracker_fl;
+    distance_tracker_s distance_tracker_vectornav;
+    vn_data_t vectornav_data;
     // To hold initial values from eeprom:
     unsigned long _lifetime_distance = 0;
     unsigned long _lifetime_on_time = 0;
@@ -43,11 +46,12 @@ private:
     Metro _log_distance_timer_60s = Metro(60000,1);
 
 public:
-    StateMachine(Inverter *inv, Accumulator *acc, Metro *rs_tim, Dashboard *dash, Metro *debug, PedalHandler *pedals, launchControlSystem *lcSys, torque_control_system *tcSys,Metro *ped_t)
-        : pm100(inv), accumulator(acc), timer_ready_sound(rs_tim), dash_(dash), debug_(debug), pedals(pedals), lcSystem(lcSys),tcSystem(tcSys),pedal_check_(ped_t){};
+    StateMachine(Inverter *inv, Accumulator *acc, Metro *rs_tim, Dashboard *dash, Metro *debug, PedalHandler *pedals, launchControlSystem *lcSys, torque_control_system *tcSys,Metro *ped_t,can_obj_ksu_ev_can_h_t *ksu_can_)
+        : pm100(inv), accumulator(acc), timer_ready_sound(rs_tim), dash_(dash), debug_(debug), pedals(pedals), lcSystem(lcSys),tcSystem(tcSys),pedal_check_(ped_t),ksu_can(ksu_can_){};
 
     void init_state_machine(MCU_status &mcu_status);
     void handle_state_machine(MCU_status &mcu_status);
+    void update_daq_can();
     void handle_distance_trackers(MCU_status &mcu_status);
     time_and_distance_tracker_t get_lifetime_data()
     {
