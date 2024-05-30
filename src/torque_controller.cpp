@@ -91,7 +91,6 @@ int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, i
         slipActive = false; // Catch all, should disable whenever slip ratio falls below threshold and slip active was true
     }
    
-
     // Check bounds
     if (slipTime < xSlipTime[0] || slipTime > xSlipTime[numPoints - 1]) {
         Serial.println("slipTime out of bounds");
@@ -110,6 +109,7 @@ int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, i
         outputTorqueRTD = yTorqueRTD[numPoints - 1];
     }
     
+    // Limit torque outputs like normal
     torqueOut = outputTorqueRTD;
     lcTorqueRequest = static_cast<int16_t>(torqueOut); // Pre clamping
     if (torqueOut > maxTorque)
@@ -121,7 +121,6 @@ int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, i
         torqueOut = 0;
     }
 
-    
     outputTorqueCommand = static_cast<int16_t>(torqueOut); // Post-clamping
     return outputTorqueCommand;  
 }

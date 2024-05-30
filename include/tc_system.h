@@ -9,7 +9,7 @@
 class torque_control_system
 {
 public:
-    torque_control_system(std::initializer_list<torque_control_types_e> enabledTypes = {torque_control_types_e::TC_DRIVERCONTROL, torque_control_types_e::TC_PID, torque_control_types_e::TC_TimeSlip})
+    torque_control_system(std::initializer_list<torque_control_types_e> enabledTypes = {torque_control_types_e::TC_DRIVERCONTROL, torque_control_types_e::TC_PID, torque_control_types_e::TC_SlipTime})
     {
         for (auto type : enabledTypes)
         {
@@ -34,13 +34,13 @@ private:
     torque_control_types_e tcType = torque_control_types_e::TC_DRIVERCONTROL;
     torque_controller tc_base;
     torque_controllerPID tc_pid = torque_controllerPID(1.0, 0, 0);
-    torque_controllerTimeSlip tc_timeslip;
+    torque_controllerSlipTime tc_sliptime;
 
     // This map should contain ALL types
     std::unordered_map<torque_control_types_e, void *> tc_map = {
         {torque_control_types_e::TC_DRIVERCONTROL, &tc_base},
         {torque_control_types_e::TC_PID, &tc_pid},
-        {torque_control_types_e::TC_TimeSlip, &tc_timeslip}};
+        {torque_control_types_e::TC_SlipTime, &tc_sliptime}};
 
     // This map will only have enabled types
     std::unordered_map<torque_control_types_e, void *> enabled_tc_map;
