@@ -110,7 +110,7 @@ int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, i
     }
     
     // Limit torque outputs like normal
-    torqueOut = outputTorqueRTD * 10; // times 10 because your input is coming from the output of calculate_torque based on the APPS which is Nmx10
+    torqueOut = driverTorqueRequest - (outputTorqueRTD * 10); // times 10 because your input is coming from the output of calculate_torque based on the APPS which is Nmx10, and subtracts the amount of torque you want to remove from the driver's request
     lcTorqueRequest = static_cast<int16_t>(torqueOut); // Pre clamping
     if (torqueOut > maxTorque)
     {

@@ -101,14 +101,14 @@ public:
 class torque_controllerSlipTime : public torque_controller
 {
 private:
-    const double tireSlipHigh = 0.05; // Slip threshold
+    const double tireSlipHigh = 0.15; // Slip threshold
     unsigned long _lastSlip = 0; // Time slip began
     unsigned long slip_dT = 0; // Time delta since slip first began
     double slipTime = 0; // Slip * time, the x axis
     bool slipActive = false; // Flag to indicate if slip is active
     static const int numPoints = 6; // Number of data points
-    double yTorqueRTD[numPoints] = {10, 20, 30, 50, 80, 160}; // TQ in Nm to reduce the output by
-    double xSlipTime[numPoints] = {50, 100, 200, 400, 600, 1000}; // SlipTime, is % slip * time (ms) 
+    double yTorqueRTD[numPoints] = {20, 30, 40, 50, 80, 120}; // TQ in Nm to reduce the output by
+    double xSlipTime[numPoints] = {100, 200, 300, 500, 750, 1000}; // SlipTime, is % slip * time (ms) 
     double slopes[numPoints]; // Slopes at each point for interpolation
     double outputTorqueRTD = 0; // Torque Retard due to controller
 public:
