@@ -129,7 +129,7 @@ void setup()
     }
     Serial.printf("Last torque mode (from EEPROM: %d)\n",last_mode);
     mcu_status.set_torque_mode(last_mode);         // TODO torque modes should be an enum
-    mcu_status.set_max_torque(torque_mode_list[last_mode-1]);   // TORQUE_1=60nm, 2=120nm, 3=180nm, 4=240nm
+    mcu_status.set_max_torque(torque_mode_list[last_mode-1]);   // TORQUE_1=10nm, 2=54nm, 3=180nm, 4=240nm
     state_machine.init_state_machine(mcu_status);
 }
 
