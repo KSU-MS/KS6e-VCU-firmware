@@ -93,7 +93,6 @@ int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, i
    
     // Check bounds
     if (slipTime < xSlipTime[0] || slipTime > xSlipTime[numPoints - 1]) {
-        Serial.println("slipTime out of bounds");
         outputTorqueRTD = 0;
     }
 
