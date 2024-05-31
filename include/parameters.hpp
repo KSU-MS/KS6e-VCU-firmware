@@ -19,7 +19,7 @@
 #define D_KI 0.3
 #define D_KD 0.5
 #define D_OUTPUT_MIN 0.0 // Minimum output of the PID controller
-#define D_OUTPUT_MAX 2400 // Max output of the PID controller
+#define D_OUTPUT_MAX 1600 // Max output of the PID controller
 #define BANGBANG_RANGE 1000.0 
 #define PID_TIMESTEP 100.0
 #define PID_MODE false //enable cruise control
@@ -28,8 +28,8 @@
 const unsigned long LAUNCHCONTROL_RELEASE_DELAY = 1500;
 #define WHEELSPEED_TOOTH_COUNT 18 // Wheel Speed sensor tooth coutn
 const float WHEEL_CIRCUMFERENCE  = 0.229*PI*2;
-const float FRONT_SPROCKET_TEETH = 16; // Updated 5/29/24 for 228hv
-const float REAR_SPROCKET_TEETH = 29; // Updated 5/29/24 for 228hv
+const float FRONT_SPROCKET_TEETH = 10;
+const float REAR_SPROCKET_TEETH = 37;
 const float FINAL_DRIVE = FRONT_SPROCKET_TEETH/REAR_SPROCKET_TEETH; 
 #define RPM_TIMEOUT 1000 // Timeout for wheel speed RPM to reset to 0
 #define MIN_BRAKE_PEDAL 400           // ~0.5v, set on 2-29-2024
@@ -75,9 +75,9 @@ const double FILTERING_ALPHA_1HZ = 2 * 3.14 * cutoff_1hz / (1 + 2 * 3.14 * cutof
 // Note that the variable max_torque is uin8_t
 // So it will overflow past a value of 255
 const uint8_t TORQUE_1 = 10; // 1st Torque setting
-const uint8_t TORQUE_2 = 120; //2nd torque setting
-const uint8_t TORQUE_3 = 180; //3rd torque setting
-const uint8_t TORQUE_4 = 240; //4th torque setting
+const uint8_t TORQUE_2 = 54; //2nd torque setting
+const uint8_t TORQUE_3 = 110; //3rd torque setting
+const uint8_t TORQUE_4 = 160; //4th torque setting
 // List of torque modes (Nm) 
 const int torque_mode_list[]={TORQUE_1,TORQUE_2,TORQUE_3,TORQUE_4};
 
