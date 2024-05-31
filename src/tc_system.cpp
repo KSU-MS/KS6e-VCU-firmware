@@ -39,6 +39,11 @@ void torque_control_system::printControllerType()
             printf("Controller type is tc_PID");
             break;
         }
+        case (torque_control_types_e::TC_SlipTime):
+        {
+            printf("Controller type is tc_SlipTime");
+            break;
+        }
         case (torque_control_types_e::TC_NUM_CONTROLLERS):
         {
             printf("? LOL");
