@@ -29,7 +29,7 @@ const unsigned long LAUNCHCONTROL_RELEASE_DELAY = 1500;
 #define WHEELSPEED_TOOTH_COUNT 18 // Wheel Speed sensor tooth coutn
 const float WHEEL_CIRCUMFERENCE  = 0.229*PI*2;
 const float FRONT_SPROCKET_TEETH = 10;
-const float REAR_SPROCKET_TEETH = 29;
+const float REAR_SPROCKET_TEETH = 37;
 const float FINAL_DRIVE = FRONT_SPROCKET_TEETH/REAR_SPROCKET_TEETH; 
 #define RPM_TIMEOUT 1000 // Timeout for wheel speed RPM to reset to 0
 #define MIN_BRAKE_PEDAL 400           // ~0.5v, set on 2-29-2024
