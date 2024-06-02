@@ -27,9 +27,10 @@ int16_t torque_controllerPID::calculate_torque(unsigned long elapsedTime, int16_
     printf("TC Front avg: %f Rear avg: %f\n",frontRpmAvg,rearRpmAvg);
     printf("TC WHEELSPEEDS \nFL: %f FR: %f\nRL: %f RR: %f\n",wheelSpeedData.fl,wheelSpeedData.fr,wheelSpeedData.rl,wheelSpeedData.rr);
     // avoid zero division
-    if (frontRpmAvg || rearRpmAvg <= 0.001)
+    if (frontRpmAvg || rearRpmAvg <= 10)
     {
         this->input = 0; // treat it like 0 slip (maybe this is bad)
+        pid.reset(elapsedTime);
     }
     else
     {
@@ -68,7 +69,7 @@ int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, i
     printf("TC Front avg: %f Rear avg: %f\n",frontRpmAvg,rearRpmAvg);
     printf("TC WHEELSPEEDS \nFL: %f FR: %f\nRL: %f RR: %f\n",wheelSpeedData.fl,wheelSpeedData.fr,wheelSpeedData.rl,wheelSpeedData.rr);
     // avoid zero division
-    if (frontRpmAvg || rearRpmAvg <= 0.001)
+    if (frontRpmAvg || rearRpmAvg <= 10)
     {
         slipRatio = 0; // treat it like 0 slip (maybe this is bad)
     }
@@ -107,9 +108,15 @@ int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, i
     if (slipTime = xSlipTime[numPoints - 1]) {
         outputTorqueRTD = yTorqueRTD[numPoints - 1];
     }
-    
+    if (slipActive)
+    {
+        torqueOut = driverTorqueRequest - (outputTorqueRTD * 10); // times 10 because your input is coming from the output of calculate_torque based on the APPS which is Nmx10, and subtracts the amount of torque you want to remove from the driver's request
+    }
+    else
+    {
+        torqueOut = maxTorque;
+    }
     // Limit torque outputs like normal
-    torqueOut = driverTorqueRequest - (outputTorqueRTD * 10); // times 10 because your input is coming from the output of calculate_torque based on the APPS which is Nmx10, and subtracts the amount of torque you want to remove from the driver's request
     lcTorqueRequest = static_cast<int16_t>(torqueOut); // Pre clamping
     if (torqueOut > maxTorque)
     {

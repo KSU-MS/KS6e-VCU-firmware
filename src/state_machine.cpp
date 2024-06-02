@@ -166,11 +166,10 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     sendStructOnCan(distance_tracker_motor.get_data(), ID_VCU_DISTANCE_TRACKER_MOTOR);
     sendStructOnCan(distance_tracker_vectornav.get_data(), ID_VCU_DISTANCE_TRACKER_VN);
     uint16_t joe[] = {
-      static_cast<uint16_t>(distance_tracker_fl.capacity_ah*100),
-      static_cast<uint16_t>(distance_tracker_motor.capacity_ah*100),
-      static_cast<uint16_t>(distance_tracker_vectornav.capacity_ah*100)
-    };
-    sendStructOnCan(joe,ID_VCU_COULOMB_COUNT);
+        static_cast<uint16_t>(distance_tracker_fl.capacity_ah * 100),
+        static_cast<uint16_t>(distance_tracker_motor.capacity_ah * 100),
+        static_cast<uint16_t>(distance_tracker_vectornav.capacity_ah * 100)};
+    sendStructOnCan(joe, ID_VCU_COULOMB_COUNT);
   }
 
   // DASH BUTTON INTERACTIONS
@@ -232,17 +231,6 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 #endif
     // TODO test TCs
     calculated_torque = pedals->calculate_torque(motor_speed, max_t_actual);
-    if ((millis() - vectornav_data.last_update_time) <= 100)
-    {
-      float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
-      wheelSpeeds_s wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
-      calculated_torque = tcSystem->getController()->calculate_torque(millis(), calculated_torque, wheelSpeedData);
-    }
-    else
-    {
-      wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
-      calculated_torque = tcSystem->getController()->calculate_torque(millis(), calculated_torque, wheelSpeedData);
-    }
     // REGEN
     if (mcu_status.get_brake_pedal_active() && dash_->get_button2() && calculated_torque < 5)
     {
@@ -536,6 +524,17 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
         break;
       }
       }
+    }
+    if ((millis() - vectornav_data.last_update_time) <= 100)
+    {
+      float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
+      wheelSpeeds_s wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+      calculated_torque = tcSystem->getController()->calculate_torque(millis(), calculated_torque, wheelSpeedData);
+    }
+    else
+    {
+      wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+      calculated_torque = tcSystem->getController()->calculate_torque(millis(), calculated_torque, wheelSpeedData);
     }
 #if USE_INVERTER
     pm100->calc_and_send_current_limit(pm100->getmcBusVoltage(), DISCHARGE_POWER_LIM, CHARGE_POWER_LIM);

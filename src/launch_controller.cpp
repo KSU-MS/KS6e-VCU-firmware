@@ -86,9 +86,10 @@ int16_t launchControllerPID::calculateTorque(unsigned long elapsedTime, int16_t 
     printf("LC WHEELSPEEDS \nFL: %f FR: %f\nRL: %f RR: %f\n",wheelSpeedData.fl,wheelSpeedData.fr,wheelSpeedData.rl,wheelSpeedData.rr);
 
     // avoid zero division
-    if (frontRpmAvg || rearRpmAvg <= 0.001)
+    if (frontRpmAvg || rearRpmAvg <= 10)
     {
         this->input = 0; // treat it like 0 slip (maybe this is bad)
+        pid.reset(elapsedTime);
     }
     else
     {

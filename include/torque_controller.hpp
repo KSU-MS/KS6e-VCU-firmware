@@ -53,7 +53,7 @@ private:
     double d_kp = 1.0;
     double d_ki = 1.0;
     double d_kd = 1.0;
-    const double output_min = -1.0; // Minimum output of the PID controller
+    const double output_min = -0.4; // Minimum output of the PID controller
     const double output_max = 0; // Max output of the PID controller
     double input, setpoint, output;
     AutoPID pid;

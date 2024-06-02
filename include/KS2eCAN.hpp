@@ -43,6 +43,7 @@
 #define ID_VCU_TRACTION_CONTROLLER_INFO                             0xD1
 #define ID_VCU_DISTANCE_TRACKER_VN                                  0xD2
 #define ID_VCU_COULOMB_COUNT                                        0xD3
+#define ID_VCU_CALCULATED_SLIP                                      0xD4
 #define ID_BMS_CURRENT_LIMIT_INFO     0x6B1
 #define ID_BMS_PACK_VOLTAGE_INFO      0x6B2
 #define ID_ACU_RELAY    0x258

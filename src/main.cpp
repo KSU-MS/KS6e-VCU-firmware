@@ -59,7 +59,7 @@ Metro timer_can_update = Metro(1000, 1);
 FreqMeasureMulti wsfl;
 FreqMeasureMulti wsfr;
 #define ENABLED_LC_TYPES {launchControlTypes_e::LC_DRIVERCONTROL,launchControlTypes_e::LC_LINEAR,launchControlTypes_e::LC_PID}
-#define ENABLED_TC_TYPES {torque_control_types_e::TC_DRIVERCONTROL,torque_control_types_e::TC_PID}
+#define ENABLED_TC_TYPES {torque_control_types_e::TC_DRIVERCONTROL,torque_control_types_e::TC_PID,torque_control_types_e::TC_SlipTime}
 // objects
 Dashboard dash;
 Inverter pm100(&timer_mc_kick_timer, &timer_inverter_enable, &timer_motor_controller_send, &timer_current_limit_send, &dash);
