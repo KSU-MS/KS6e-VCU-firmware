@@ -27,7 +27,7 @@ int16_t torque_controllerPID::calculate_torque(unsigned long elapsedTime, int16_
     printf("TC Front avg: %f Rear avg: %f\n",frontRpmAvg,rearRpmAvg);
     printf("TC WHEELSPEEDS \nFL: %f FR: %f\nRL: %f RR: %f\n",wheelSpeedData.fl,wheelSpeedData.fr,wheelSpeedData.rl,wheelSpeedData.rr);
     // avoid zero division
-    if (frontRpmAvg || rearRpmAvg <= 10)
+    if (frontRpmAvg <= 10 || rearRpmAvg <= 10)
     {
         this->input = 0; // treat it like 0 slip (maybe this is bad)
         pid.reset(elapsedTime);
@@ -37,7 +37,7 @@ int16_t torque_controllerPID::calculate_torque(unsigned long elapsedTime, int16_
         // Slip = (rear / front) - 1
         // ie. 1000rpm/900rpm = 1.111..
         // 1.111 - 1 = 0.111 slip ratio
-        this->input = (rearRpmAvg / frontRpmAvg) - 1;
+        this->input = wheelSpeedData.calc_slip();
     }
  
     pid.run(elapsedTime);
@@ -69,7 +69,7 @@ int16_t torque_controllerSlipTime::calculate_torque(unsigned long elapsedTime, i
     printf("TC Front avg: %f Rear avg: %f\n",frontRpmAvg,rearRpmAvg);
     printf("TC WHEELSPEEDS \nFL: %f FR: %f\nRL: %f RR: %f\n",wheelSpeedData.fl,wheelSpeedData.fr,wheelSpeedData.rl,wheelSpeedData.rr);
     // avoid zero division
-    if (frontRpmAvg || rearRpmAvg <= 10)
+    if (frontRpmAvg <= 10|| rearRpmAvg <= 10)
     {
         slipRatio = 0; // treat it like 0 slip (maybe this is bad)
     }

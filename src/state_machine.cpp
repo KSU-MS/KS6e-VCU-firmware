@@ -501,12 +501,12 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
         if ((millis() - vectornav_data.last_update_time) <= 100)
         {
           float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
-          wheelSpeeds_s wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+          wheelSpeeds_s wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM() * FINAL_DRIVE, pm100->getmcMotorRPM() * FINAL_DRIVE};
           lcSystem->getController()->run(millis(), calculated_torque, wheelSpeedData);
         }
         else
         {
-          wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+          wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM() * FINAL_DRIVE, pm100->getmcMotorRPM() * FINAL_DRIVE};
           lcSystem->getController()->run(millis(), calculated_torque, wheelSpeedData);
         }
         calculated_torque = lcSystem->getController()->getTorqueOutput();
@@ -528,13 +528,25 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
     if ((millis() - vectornav_data.last_update_time) <= 100)
     {
       float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
-      wheelSpeeds_s wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+      wheelSpeeds_s wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM() * FINAL_DRIVE, pm100->getmcMotorRPM() * FINAL_DRIVE};
       calculated_torque = tcSystem->getController()->calculate_torque(millis(), calculated_torque, wheelSpeedData);
+      if (_100hz_send)
+      {
+        uint16_t joe[3] = {0};
+        wheelSpeedData.load_diag_data(joe);
+        sendStructOnDaqCan(joe, ID_VCU_CALCULATED_SLIP);
+      }
     }
     else
     {
-      wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM(), pm100->getmcMotorRPM()};
+      wheelSpeeds_s wheelSpeedData = {pedals->get_wsfl(), pedals->get_wsfr(), pm100->getmcMotorRPM() * FINAL_DRIVE, pm100->getmcMotorRPM() * FINAL_DRIVE};
       calculated_torque = tcSystem->getController()->calculate_torque(millis(), calculated_torque, wheelSpeedData);
+      if (_100hz_send)
+      {
+        uint16_t joe[3] = {0};
+        wheelSpeedData.load_diag_data(joe);
+        sendStructOnDaqCan(joe, ID_VCU_CALCULATED_SLIP);
+      }
     }
 #if USE_INVERTER
     pm100->calc_and_send_current_limit(pm100->getmcBusVoltage(), DISCHARGE_POWER_LIM, CHARGE_POWER_LIM);
@@ -634,6 +646,20 @@ void StateMachine::update_daq_can()
       vectornav_data.velocity_magnitude = sqrt(pow(vectornav_data.velocity_east, 2.0) + pow(vectornav_data.velocity_north, 2.0));
       vectornav_data.last_update_time = millis();
       break;
+    }
+    case ID_VCU_POWER_LIM_UPDATE:
+    {
+      uint32_t new_lim = 80000;
+      memcpy(&new_lim,rxMsg.buf,sizeof(new_lim));
+      if (new_lim > 80000)
+      {
+        new_lim = 80000;
+      }
+      else if(new_lim == 0)
+      {
+        new_lim = 33000;
+      }
+      DISCHARGE_POWER_LIM = new_lim;
     }
     }
   }

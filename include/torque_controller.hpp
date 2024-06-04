@@ -49,6 +49,7 @@ public:
 class torque_controllerPID : public torque_controller
 {
 private:
+    const double tireSlipThreshold = 0.3;
     const double tireSlipHigh = 0.5;
     double d_kp = 1.0;
     double d_ki = 1.0;

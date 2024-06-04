@@ -23,6 +23,15 @@ bool sendStructOnCan(T data, uint32_t id)
     memcpy(msg.buf, &data,sizeof(data));
     return WriteCANToInverter(msg);
 }
+template<typename T>
+bool sendStructOnDaqCan(T data, uint32_t id)
+{
+    CAN_message_t msg;
+    msg.id = id;
+    static_assert(sizeof(data) <= sizeof(msg.buf), "Data size exceeds message buffer size");
+    memcpy(msg.buf, &data,sizeof(data));
+    return WriteToDaqCAN(msg);
+}
 void InitCAN();
 
 #endif
