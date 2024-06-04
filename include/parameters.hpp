@@ -61,7 +61,7 @@ const float accumulator_cell_maximum_voltage = 4.2;
 const float bspd_trip_power = 5000;
 const float bspd_current_high_threshold = bspd_trip_power/(accumulator_cell_count * accumulator_cell_nominal_voltage); // Current value where BSPD current detection should be high (5kw at nominal voltage)
 const int MIN_HV_VOLTAGE = 600; // apparently this is divided by ten? yes maybe, bc getmcbusvoltage returns a can packet which is the bus voltage*10? idk
-int DISCHARGE_POWER_LIM  = 80000;
+const int DISCHARGE_POWER_LIM  = 80000;
 const int CHARGE_POWER_LIM = 9000;
 
 const float cutoff_10hz = 10; // Hz

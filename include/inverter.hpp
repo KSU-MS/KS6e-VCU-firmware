@@ -38,7 +38,7 @@ private:
 public:
     // this is a member init list: https://www.youtube.com/watch?v=1nfuYMXjZsA
     Inverter(Metro *mc_kick_timer, Metro *en_tim, Metro *comm_timer, Metro *current_lim_tim, Dashboard *dash_) : mc_kick_tim(mc_kick_timer), timer_inverter_enable(en_tim), timer_motor_controller_send(comm_timer), timer_current_limit(current_lim_tim), dash(dash_){};
-
+    uint32_t discharge_power_lim = DISCHARGE_POWER_LIM;
     void doStartup();
     void inverter_kick(bool enable);
     void forceMCdischarge();

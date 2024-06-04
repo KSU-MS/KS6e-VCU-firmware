@@ -162,6 +162,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
 
   if (_10hz_send)
   {
+    sendStructOnDaqCan(pm100->discharge_power_lim,ID_VCU_POWER_LIM_UPDATE);
     sendStructOnCan(distance_tracker_fl.get_data(), ID_VCU_DISTANCE_TRACKER_WHEELSPEED);
     sendStructOnCan(distance_tracker_motor.get_data(), ID_VCU_DISTANCE_TRACKER_MOTOR);
     sendStructOnCan(distance_tracker_vectornav.get_data(), ID_VCU_DISTANCE_TRACKER_VN);
@@ -549,7 +550,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       }
     }
 #if USE_INVERTER
-    pm100->calc_and_send_current_limit(pm100->getmcBusVoltage(), DISCHARGE_POWER_LIM, CHARGE_POWER_LIM);
+    pm100->calc_and_send_current_limit(pm100->getmcBusVoltage(), pm100->discharge_power_lim, CHARGE_POWER_LIM);
     pm100->command_torque(calculated_torque);
 #endif
     break;
@@ -659,7 +660,8 @@ void StateMachine::update_daq_can()
       {
         new_lim = 33000;
       }
-      DISCHARGE_POWER_LIM = new_lim;
+      pm100->discharge_power_lim = new_lim;
+      break;
     }
     }
   }
