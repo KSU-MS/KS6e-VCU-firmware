@@ -1,14 +1,18 @@
 #ifndef COMMON_STRUCTS_H
 #define COMMON_STRUCTS_H
 #include "parameters.hpp"
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
 typedef struct wheelSpeeds_s
 {
-    float fl;
-    float fr;
-    float rl;
-    float rr;
+    float fl = 0;
+    float fr = 0;
+    float rl = 0;
+    float rr = 0;
     wheelSpeeds_s(float fl, float fr, float rl, float rr)
         : fl(fl), fr(fr), rl(rl), rr(rr) {}
+    wheelSpeeds_s(){}
     float calc_slip()
     {
         // Calculate front and rear wheel speeds - take average of left and right
@@ -35,6 +39,12 @@ typedef struct wheelSpeeds_s
         joe[1] = static_cast<uint16_t>(rearRpmAvg*10);
         joe[2] = static_cast<uint16_t>(calc_slip()*100);
     }
+    #ifdef ARDUINO
+    void print()
+    {
+        Serial.printf("fl %f fr %f rl %f rr %f\n",fl,fr,rl,rr);
+    }
+    #endif
 
 } wheelSpeeds_s;
 

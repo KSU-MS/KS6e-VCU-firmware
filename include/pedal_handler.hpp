@@ -98,6 +98,7 @@ public:
     float get_wsfr();
     bool send_readings();
     bool get_board_sensor_readings();
+    void print_cal_values();
     pedal_travels_t get_pedal_travels()
     {
         return pedal_travels_t(static_cast<int16_t>(apps1.getTravelRatio()*1000),static_cast<int16_t>(apps2.getTravelRatio()*1000),static_cast<int16_t>(bse1.getTravelRatio()*1000));

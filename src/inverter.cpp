@@ -34,7 +34,7 @@ void Inverter::updateInverterCAN()
         case (ID_MC_VOLTAGE_INFORMATION):
         {
             pm100Voltage.load(rxMsg.buf);
-
+            update_power();
             break;
         }
         case (ID_MC_MOTOR_POSITION_INFORMATION):
@@ -62,6 +62,13 @@ void Inverter::updateInverterCAN()
         {
             uint8_t new_inputs = rxMsg.buf[0];
             dash->update_dash(new_inputs);
+        }
+        case (ID_MC_CURRENT_INFORMATION):
+        {
+            pm100CurrentInfo.load(rxMsg.buf);
+            // Update our current power estimate, dividing both V & I as they are multiplied by 10 as received
+            update_power();
+            break;
         }
         default:
             break;

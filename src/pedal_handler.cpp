@@ -139,6 +139,9 @@ bool PedalHandler::read_pedal_values()
  */
 bool PedalHandler::send_readings()
 {
+#if DEBUG
+    print_cal_values();
+#endif
     bool sent = false;
     if (pedal_out_20hz->check())
     {
@@ -385,5 +388,22 @@ void PedalHandler::read_pedal_values_debug(uint16_t value)
         // Serial.printf("apps2: %f %f\n",this->apps2.getVoltage(),this->apps2.getTravelRatio());
         // Serial.printf("bse1: %f %f\n",this->bse1.getVoltage(),this->bse1.getTravelRatio());
 #endif
+    }
+}
+
+void PedalHandler::print_cal_values()
+{
+    static uint16_t a1,a2,b1;
+    static uint16_t ma1,ma2,mb1;
+    if (millis() > 10000)
+    { 
+        a1 = accel1_>a1 ? accel1_:a1;
+        a2 = accel2_>a2 ? accel2_:a2;
+        b1 = brake1_>b1 ? brake1_:b1;
+        Serial.printf("maxes APPS1: %d APPS2: %d BSE1: %d\n",a1,a2,b1);
+        ma1 = accel1_<ma1 ? accel1_:ma1;
+        ma2 = accel2_<ma2 ? accel2_:ma2;
+        mb1 = brake1_<mb1 ? brake1_:mb1;
+        Serial.printf("mins APPS1: %d APPS2: %d BSE1: %d\n",ma1,ma2,mb1);
     }
 }
