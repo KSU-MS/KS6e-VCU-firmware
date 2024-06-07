@@ -259,6 +259,12 @@ bool Inverter::calc_and_send_current_limit(uint16_t pack_voltage, uint32_t disch
 {
     pack_voltage /= 10;
     uint16_t discharge_current_limit = min((discharge_power_limit) / pack_voltage, accumulator_max_discharge_current);
+#if DEBUG
+    if (pm100temp3.get_motor_temperature() > 850)
+    {
+        discharge_current_limit = 15000 / pack_voltage;
+    }
+#endif
     uint16_t charge_current_limit = min((charge_power_limit / pack_voltage), accumulator_max_charge_current);
     if (timer_current_limit->check())
     {
