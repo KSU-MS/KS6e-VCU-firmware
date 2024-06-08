@@ -33,22 +33,22 @@ const float REAR_SPROCKET_TEETH = 37;
 const float FINAL_DRIVE = FRONT_SPROCKET_TEETH/REAR_SPROCKET_TEETH; 
 #define RPM_TIMEOUT 1000 // Timeout for wheel speed RPM to reset to 0
 #define MIN_BRAKE_PEDAL 400           // ~0.5v, set on 2-29-2024
-#define START_BRAKE_PEDAL 800       // 1.58V, set on 2-29-2024
-#define BRAKE_ACTIVE 2200            // Threshold for brake pedal active (set to be doable by hand)
-#define END_BRAKE_PEDAL 2409          // ~4.1V, approximately maxed out brake pedal, set on 2-29-2024
+#define START_BRAKE_PEDAL 887       // 1.58V, set on 2-29-2024
+#define BRAKE_ACTIVE 2200            // Threshold for brake pedal active (set to be doable by hand) 1342
+#define END_BRAKE_PEDAL 3068          // ~4.1V, approximately maxed out brake pedal, set on 2-29-2024
 #define MAX_BRAKE_PEDAL 3850
 
 #define MIN_ACCELERATOR_PEDAL_1 50    // Low accelerator implausibility threshold
-#define START_ACCELERATOR_PEDAL_1 1104  // Position to start acceleration
-#define END_ACCELERATOR_PEDAL_1 3157   // Position to max out acceleration
+#define START_ACCELERATOR_PEDAL_1 1410  // Position to start acceleration
+#define END_ACCELERATOR_PEDAL_1 3250   // Position to max out acceleration
 #define MAX_ACCELERATOR_PEDAL_1 4000    // High accelerator implausibility threshold
 
 #define MIN_ACCELERATOR_PEDAL_2 80   // Low accelerator implausibility threshold
-#define START_ACCELERATOR_PEDAL_2 753  // Position to start acceleration
-#define END_ACCELERATOR_PEDAL_2 2112    // Position to max out acceleration
+#define START_ACCELERATOR_PEDAL_2 970  // Position to start acceleration
+#define END_ACCELERATOR_PEDAL_2 2170    // Position to max out acceleration
 #define MAX_ACCELERATOR_PEDAL_2 3000    // High accelerator implausibility threshold
 
-#define APPS_ALLOWABLE_TRAVEL_DEVIATION 50 // % (percentage) allowable deviation of APPS1 and APPS2 travel readings
+#define APPS_ALLOWABLE_TRAVEL_DEVIATION 75 // % (percentage) allowable deviation of APPS1 and APPS2 travel readings
 
 #define REGEN_NM 60 
 #define BSPD_OK_HIGH_THRESHOLD 500 // ADC reading when BSPD is Latched (OK state)

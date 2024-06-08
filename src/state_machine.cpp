@@ -655,7 +655,7 @@ void StateMachine::update_daq_can()
       decode_can_0x1f8_evelogger_vectornav_v_e(ksu_can, &vectornav_data.velocity_east);
       decode_can_0x1f8_evelogger_vectornav_v_d(ksu_can, &vectornav_data.velocity_down);
       decode_can_0x1f8_evelogger_vectornav_v_n(ksu_can, &vectornav_data.velocity_north);
-      vectornav_data.velocity_magnitude = sqrt(pow(vectornav_data.velocity_east, 2.0) + pow(vectornav_data.velocity_north, 2.0));
+      vectornav_data.velocity_magnitude = sqrt(pow(vectornav_data.velocity_east, 2.0) + pow(vectornav_data.velocity_north, 2.0) + pow(vectornav_data.velocity_down, 2.0));
       vectornav_data.last_update_time = millis();
       break;
     }

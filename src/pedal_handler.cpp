@@ -212,6 +212,7 @@ void PedalHandler::verify_pedals(
     float torqSum = abs(torque1 - torque2);
     float torqAvg = (torque1 + torque2) / 2;
     float torqDiff = torqSum / torqAvg;
+    bool apps_above_tiny_travel = ((this->apps1.getTravelRatio() > 0.1) || (this->apps2.getTravelRatio() > 0.1));
 
     if (accel1_ < MIN_ACCELERATOR_PEDAL_1 ||
         accel1_ > MAX_ACCELERATOR_PEDAL_1)
@@ -226,8 +227,12 @@ void PedalHandler::verify_pedals(
     // check that the pedals are reading within 10% of each other TODO re-enabled 6/10/23, why was it commented out in the first place? how did we fix it before??
     // sum of the two readings should be within 10% of the average travel
     // T.4.2.4
-    else if (torqDiff * 100 > APPS_ALLOWABLE_TRAVEL_DEVIATION)
+    else if ((torqDiff * 100 > APPS_ALLOWABLE_TRAVEL_DEVIATION) && apps_above_tiny_travel)
     {
+#if DEBUG
+        Serial.printf("torqdiff: %f\n",torqDiff);
+        Serial.printf("%d %d\n",torque1,torque2);
+#endif
         accel_is_plausible = false;
     }
     else
@@ -298,36 +303,38 @@ float PedalHandler::get_wsfl() { return wsfl_t.current_rpm; }
  * @param ws 
  * @param freq 
  */
-void PedalHandler::update_wheelspeed(unsigned long current_time_millis, wheelspeeds_t *ws, FreqMeasureMulti *freq){
-    if ((current_time_millis - ws->current_rpm_change_time) > RPM_TIMEOUT) 
-    { 
+void PedalHandler::update_wheelspeed(unsigned long current_time_millis, wheelspeeds_t *ws, FreqMeasureMulti *freq) {
+    if ((current_time_millis - ws->current_rpm_change_time) > RPM_TIMEOUT) {
         ws->current_rpm = 0;
     }
-    if (freq->available()){
-        // average several reading together
+
+    if (freq->available()) {
+        // average several readings together
         ws->sum = ws->sum + freq->read();
         ws->count = ws->count + 1;
         ws->current_rpm_change_time = millis();
-        if (ws->count > 1)
-        {
+
+        if (ws->count > 1) {
             float testRpm = freq->countToFrequency(ws->sum / ws->count) * 60 / WHEELSPEED_TOOTH_COUNT;
-            if (testRpm > 6000)
-            {
+            if (testRpm > 6000) {
                 testRpm = ws->current_rpm;
             }
             ws->current_rpm = testRpm;
 
-            /*if ( testRpm - prev_rpm < 1)
-            {
-              current_rpm = testRpm;
-              prev_rpm = testRpm;
-            }*/
+            // Update the buffer with the new RPM value
+            ws->rpm_buffer[ws->buffer_index] = ws->current_rpm;
+            ws->buffer_index = (ws->buffer_index + 1) % BUFFER_SIZE;
+
+            // Calculate the rolling average
+            float sum = 0;
+            for (int i = 0; i < BUFFER_SIZE; i++) {
+                sum += ws->rpm_buffer[i];
+            }
+            ws->current_rpm = sum / BUFFER_SIZE;
 
             ws->sum = 0;
             ws->count = 0;
-            // prev_rpm = testRpm;
         }
-
     }
 }
 

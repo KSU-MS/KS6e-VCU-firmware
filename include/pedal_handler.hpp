@@ -25,11 +25,13 @@
 
 // FSAE EV.5.7
 // APPS/Brake Pedal Plausability Check
+#define BUFFER_SIZE 5 // Number of recent values to average
 
 typedef struct wheelspeeds_t
 {
     float current_rpm = 0;
-    float prev_rpm;
+    float rpm_buffer[BUFFER_SIZE] = {0}; // Buffer to store recent RPM values
+    int buffer_index = 0; // Index to track the position in the buffer
     unsigned long current_rpm_change_time;
     int sum = 0;
     int count = 0;
