@@ -407,10 +407,10 @@ void PedalHandler::print_cal_values()
         a1 = accel1_>a1 ? accel1_:a1;
         a2 = accel2_>a2 ? accel2_:a2;
         b1 = brake1_>b1 ? brake1_:b1;
-        Serial.printf("maxes APPS1: %d APPS2: %d BSE1: %d\n",a1,a2,b1);
-        ma1 = accel1_<ma1 ? accel1_:ma1;
-        ma2 = accel2_<ma2 ? accel2_:ma2;
-        mb1 = brake1_<mb1 ? brake1_:mb1;
-        Serial.printf("mins APPS1: %d APPS2: %d BSE1: %d\n",ma1,ma2,mb1);
+        Serial.printf("maxes APPS1: %d APPS2: %d BSE1: %d\n",accel1_,accel2_,brake1_);
+        // ma1 = accel1_<ma1 ? accel1_:ma1;
+        // ma2 = accel2_<ma2 ? accel2_:ma2;
+        // mb1 = brake1_<mb1 ? brake1_:mb1;
+        // Serial.printf("mins APPS1: %d APPS2: %d BSE1: %d\n",ma1,ma2,mb1);
     }
 }

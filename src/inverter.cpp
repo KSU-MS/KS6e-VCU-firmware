@@ -266,7 +266,7 @@ bool Inverter::calc_and_send_current_limit(uint16_t pack_voltage, uint32_t disch
     }
 #endif
     uint16_t charge_current_limit = min((charge_power_limit / pack_voltage), accumulator_max_charge_current);
-    if (timer_current_limit->check())
+    if (timer_current_limit->check() && (discharge_power_limit<80000))
     {
 #if DEBUG
         Serial.printf("discharge current limit: %d charge current limit: %d\n", discharge_current_limit, charge_current_limit);

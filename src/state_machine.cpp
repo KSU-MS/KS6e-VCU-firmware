@@ -177,7 +177,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
                      static_cast<uint16_t>(distance_tracker_motor.capacity_ah * 100),
                      static_cast<uint16_t>(distance_tracker_vectornav.capacity_ah * 100)},
                     ID_VCU_COULOMB_COUNT);
-    if ((millis() - vectornav_data.last_update_time) <= 100)
+    if (false)
     {
       float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
       wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM() * FINAL_DRIVE, pm100->getmcMotorRPM() * FINAL_DRIVE};
@@ -501,7 +501,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
         {
           dash_->set_button_last_pressed_time(0, 6);
         }
-        if (_20hz_send)
+        if (_100hz_send)
         {
           lc_countdown_t countdown_t;
           countdown_t.release_countdown = dash_->get_button_last_pressed_time(6);
@@ -517,7 +517,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
           lcSystem->getController()->setState(launchState::FINISHED, millis());
           break;
         }
-        if ((millis() - vectornav_data.last_update_time) <= 100)
+        if (false)
         {
           float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
           wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM() * FINAL_DRIVE, pm100->getmcMotorRPM() * FINAL_DRIVE};
@@ -543,7 +543,7 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       }
       }
     }
-    if ((millis() - vectornav_data.last_update_time) <= 100)
+    if (false)
     {
       float vn_mock_ws = vectornav_data.mock_ws_rpm(); // Divide meters per second by circumference to get Revs per Second
       wheelSpeedData = {vn_mock_ws, vn_mock_ws, pm100->getmcMotorRPM() * FINAL_DRIVE, pm100->getmcMotorRPM() * FINAL_DRIVE};
