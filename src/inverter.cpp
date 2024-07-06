@@ -116,13 +116,22 @@ bool Inverter::command_torque(int16_t torque)
     {
         torque = 0;
     }
-    uint8_t angularVelocity1 = 0, angularVelocity2 = 0;
+    uint16_t angularVelocity = angularVelocityTarget;
     bool emraxDirection = true; // true for forward, false for reverse
-    bool inverterEnable = true; // go brrr
+    byte inverterEnable = 0x01; // go brrr
+    if (speedMode)
+    {
+        // This will force speed mode operation :/
+        inverterEnable |= 0x04;
+    }
 
     uint8_t torqueCommand[] = {
-        0, 0, angularVelocity1, angularVelocity2, emraxDirection, inverterEnable, 0, 0};
+        0, 0, 0, 0, emraxDirection, inverterEnable, 0, 0};
     memcpy(&torqueCommand[0], &torque, sizeof(torque));
+    if (speedMode)
+    {
+        memcpy(&torqueCommand[2], &angularVelocity,sizeof(angularVelocity));
+    }
     // Send torque command if timer has fired
     if (timer_motor_controller_send->check())
     {
