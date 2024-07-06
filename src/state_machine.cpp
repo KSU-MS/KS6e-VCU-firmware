@@ -443,6 +443,11 @@ void StateMachine::handle_state_machine(MCU_status &mcu_status)
       break;
     }
     // #endif
+    // Toggle speed mode if RTD button held for 1 second
+    if (dash_->get_button_held_duration(3,1000))
+    {
+      pm100->speedMode = !(pm100->speedMode);
+    }
     // Torque calc always runs in the superloop
     // Toggle launch control if button 5 held for 1 second, while brake is pressed
     if (dash_->get_button_held_duration(LAUNCH_CONTROL_BUTTON, 1000))
@@ -643,6 +648,12 @@ void StateMachine::update_daq_can()
     unpack_flexcan_message(ksu_can, rxMsg);
     switch (rxMsg.id)
     {
+    case CAN_ID_M193_READ_WRITE_PARAM_COMMAND:
+    {
+      // Forward incoming param writes so it can be done with telemetry
+      WriteCANToJUSTInverter(rxMsg);
+      break;
+    }
     case CAN_ID_EVELOGGER_VECTORNAV_ACCELERATION:
     {
       decode_can_0x1f9_evelogger_vectornav_accelX(ksu_can, &vectornav_data.accel_x);
@@ -662,6 +673,7 @@ void StateMachine::update_daq_can()
     case ID_VCU_POWER_LIM_UPDATE:
     {
       uint32_t new_lim = 80000;
+      // expect first 4 bytes to be the new limit
       memcpy(&new_lim, rxMsg.buf, sizeof(new_lim));
       if (new_lim > 80000)
       {
@@ -672,6 +684,22 @@ void StateMachine::update_daq_can()
         new_lim = 33000;
       }
       pm100->discharge_power_lim = new_lim;
+      break;
+    }
+    case ID_VCU_SPEED_LIM_UPDATE:
+    {
+      uint16_t new_lim = 4000;
+      // expect first 2 bytes to be the new limit
+      memcpy(&new_lim, rxMsg.buf, sizeof(new_lim));
+      if (new_lim > 4000)
+      {
+        new_lim = 4000;
+      }
+      else if (new_lim == 0)
+      {
+        new_lim = 1000;
+      }
+      pm100->angularVelocityTarget = new_lim;
       break;
     }
     }

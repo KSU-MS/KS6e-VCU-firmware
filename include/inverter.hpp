@@ -61,6 +61,8 @@ public:
         current_power = pm100CurrentInfo.get_dc_bus_current()/10 * pm100Voltage.get_dc_bus_voltage()/10;
     }
     bool calc_and_send_current_limit(uint16_t pack_voltage, uint32_t discharge_power_limit, uint32_t charge_power_limit);
+    bool speedMode = false;
+    uint16_t angularVelocityTarget = 2000;
 };
 
 #endif
