@@ -19,7 +19,7 @@
 #define D_KI 0.3
 #define D_KD 0.5
 #define D_OUTPUT_MIN 0.0 // Minimum output of the PID controller
-#define D_OUTPUT_MAX 1600 // Max output of the PID controller
+#define D_OUTPUT_MAX 2000 // Max output of the PID controller
 #define BANGBANG_RANGE 1000.0 
 #define PID_TIMESTEP 100.0
 #define PID_MODE false //enable cruise control
@@ -76,8 +76,8 @@ const double FILTERING_ALPHA_1HZ = 2 * 3.14 * cutoff_1hz / (1 + 2 * 3.14 * cutof
 // So it will overflow past a value of 255
 const uint8_t TORQUE_1 = 10; // 1st Torque setting
 const uint8_t TORQUE_2 = 54; //2nd torque setting
-const uint8_t TORQUE_3 = 110; //3rd torque setting
-const uint8_t TORQUE_4 = 160; //4th torque setting
+const uint8_t TORQUE_3 = 160; //3rd torque setting
+const uint8_t TORQUE_4 = 200; //4th torque setting
 // List of torque modes (Nm) 
 const int torque_mode_list[]={TORQUE_1,TORQUE_2,TORQUE_3,TORQUE_4};
 

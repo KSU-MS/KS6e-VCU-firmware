@@ -107,6 +107,7 @@ void Inverter::writeEnableNoTorque()
  */
 bool Inverter::command_torque(int16_t torque)
 {
+    uint16_t max_torque = TORQUE_4 * 10;
     // For now, this will not allow negative torque (regen)
     if (torque > (TORQUE_4 * 10))
     {
@@ -123,6 +124,7 @@ bool Inverter::command_torque(int16_t torque)
     uint8_t torqueCommand[] = {
         0, 0, angularVelocity1, angularVelocity2, emraxDirection, inverterEnable, 0, 0};
     memcpy(&torqueCommand[0], &torque, sizeof(torque));
+    memcpy(&torqueCommand[6],&max_torque, sizeof(max_torque));
     // Send torque command if timer has fired
     if (timer_motor_controller_send->check())
     {
