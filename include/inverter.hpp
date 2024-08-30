@@ -18,6 +18,7 @@ class Inverter
 {
 
 private:
+    bool spinForward = true;
     Metro *mc_kick_tim;
     Metro *timer_inverter_enable;
     Metro *timer_motor_controller_send;
@@ -26,7 +27,7 @@ private:
     void writeControldisableWithZeros();
     void writeEnableNoTorque();
     uint8_t disableWithZeros[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // The message to disable the controller/cancel lockout
-    uint8_t enableNoTorque[8] = {0, 0, 0, 0, 1, 1, 0, 0};   // The message to enable the motor with zero torque
+    uint8_t enableNoTorque[8] = {0, 0, 0, 0, spinForward, 1, 0, 0};   // The message to enable the motor with zero torque
     MC_command_message pm100Msg{};
     MC_internal_states pm100State{};
     MC_motor_position_information pm100Speed{};

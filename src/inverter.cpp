@@ -118,11 +118,10 @@ bool Inverter::command_torque(int16_t torque)
         torque = 0;
     }
     uint8_t angularVelocity1 = 0, angularVelocity2 = 0;
-    bool emraxDirection = true; // true for forward, false for reverse
     bool inverterEnable = true; // go brrr
 
     uint8_t torqueCommand[] = {
-        0, 0, angularVelocity1, angularVelocity2, emraxDirection, inverterEnable, 0, 0};
+        0, 0, angularVelocity1, angularVelocity2, spinForward, inverterEnable, 0, 0};
     memcpy(&torqueCommand[0], &torque, sizeof(torque));
     memcpy(&torqueCommand[6],&max_torque, sizeof(max_torque));
     // Send torque command if timer has fired
@@ -176,7 +175,7 @@ void Inverter::inverter_kick(bool enable)
         CAN_message_t ctrlMsg;
         ctrlMsg.len = 8;
         ctrlMsg.id = ID_MC_COMMAND_MESSAGE;
-        uint8_t heartbeatMsg[] = {0, 0, 0, 0, 1, enable, 0, 0};
+        uint8_t heartbeatMsg[] = {0, 0, 0, 0, spinForward, enable, 0, 0}; // TODO: Tie this into other guy for direction change flag
         memcpy(ctrlMsg.buf, heartbeatMsg, sizeof(ctrlMsg.buf));
         WriteCANToInverter(ctrlMsg);
     }
@@ -208,7 +207,7 @@ void Inverter::forceMCdischarge()
             CAN_message_t ctrlMsg;
             ctrlMsg.len = 8;
             ctrlMsg.id = ID_MC_COMMAND_MESSAGE;
-            uint8_t dischgMsg[] = {0, 0, 0, 0, 1, 0b0000010, 0, 0}; // bit one?
+            uint8_t dischgMsg[] = {0, 0, 0, 0, spinForward, 0b0000010, 0, 0}; // bit one? // Maybe this as well for backwards msg???
             memcpy(ctrlMsg.buf, dischgMsg, sizeof(ctrlMsg.buf));
             WriteCANToInverter(ctrlMsg);
         }
