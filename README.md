@@ -1,5 +1,5 @@
 # design 
-
+balls
 the vcu CAN out is still TODO mostly, currently it spits out all RX / TX traffic
 
 below is a loose flow of the data and what handles what
